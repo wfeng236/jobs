@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../../../xm/django_dangdang/.idea/django_dangdang.iml" filepath="$PROJECT_DIR$/../../../xm/django_dangdang/.idea/django_dangdang.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../xm/django_scrpay/.idea/django_scrpay.iml" filepath="$PROJECT_DIR$/../../../xm/django_scrpay/.idea/django_scrpay.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/scrapy_django.iml" filepath="$PROJECT_DIR$/.idea/scrapy_django.iml" />
     </modules>
   </component>

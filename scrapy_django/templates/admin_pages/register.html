@@ -20,10 +20,10 @@
 	<div class="content2">
 		<h2>Register</h2>
 		<form>
-			<input type="text" name="userid" value="USERNAME" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'NAME AND SURNAME';}">
-			<input type="tel" name="usrtel" value="PHONE" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'PHONE';}" id="phone">
-			<input type="email" name="email" value="EMAIL ADDRESS" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'EMAIL ADDRESS';}">
-			<input type="password" name="psw" value="PASSWORD" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'PASSWORD';}">
+			<input id='username' type="text" name="" value="" placeholder='NAME AND SURNAME'>
+			<input id="phone" type="tel" name="usrtel" value="" placeholder="PHONE" >
+			<input type="email" name="email" value="" placeholder='EMAIL ADDRESS'>
+			<input type="password" name="psw" value="" placeholder='PASSWORD'>
 			<input type="submit" class="register" value="Register">
 		</form>
 	</div>
@@ -32,11 +32,54 @@
 <div class="footer">
 	<p>Copyright &copy;  <a href="http://www.baizhiedu.com/" target="_blank" title="百知教育">百知教育</a></p>
 </div>
+<script src="/static/scripts/jquery/jquery-1.7.1.js"></script>
 <script>
-    $("#phone").blur(function(){
-        val = $("#phone").val()
 
+    //异步验证用户名是否存在
+    $("#username").blur(function(){
+        var username = $("#username").val();
+        console.log(username)
+        var csrftoken ="{{ csrf_token }}";
+        if(username.length != 0){
+               $.ajaxSetup({headers:{"X-CSRFToken":csrftoken}});
+               $.ajax({
+                   type:"post", //请求方式get/post
+                   url:"{% url 'user:register:ajax_username' %}",
+                   data:"username="+username,
+                   dataType:"html",
+                   success:function(a){
+                       var msg = a;
+                       console.log(msg)
+                       if(msg == "0"){
+                           alert('该用户名已存在，请重新输入！')
+                       }else if(msg == "1"){
+                           alert('该用户名可用！')
+                       }
+
+                   }
+
+                    })
+        }else{
+            alert('用户名不能为空！')
+        }
+    });
+    //jquery验证手机号
+    $("#phone").blur(function(){
+        //获取手机输入框的值
+        var phone = $("#phone").val();
+        console.log(phone.length)
+        //判断输入的值是否为11位
+        if(phone.length <11 && phone.length != 0){
+            alert('手机号为11位，当前输入小于11位，请检查后重新输入！');
+        }else if(phone.length == 11){
+            alert('手机号可以使用')
+        }else if(phone.length > 11){
+            alert('手机号为11位，当前输入大于11位，请检查后重新输入！')
+        }else if(phone.length == 0){
+            alert('手机号不能为空！')
+        }
     })
+    //jquery
 </script>
 
 </body>

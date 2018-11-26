@@ -15,6 +15,7 @@
     <orderEntry type="jdk" jdkName="Python 3.5.4 virtualenv at D:\pythonxuni\env9" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="django_dangdang" />
+    <orderEntry type="module" module-name="django_scrpay" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />
