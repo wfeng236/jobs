@@ -20,6 +20,7 @@ urlpatterns = [
     path('register/', include([
                                 path('page/',views.register_page, name='page'),
     ]),name='register'),
+
     path('login/', include([
                                 path('page/',views.login_page, name='page'),
     ]),name='login'),

@@ -21,7 +21,7 @@
 		<h2>Register</h2>
 		<form>
 			<input type="text" name="userid" value="USERNAME" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'NAME AND SURNAME';}">
-			<input type="tel" name="usrtel" value="PHONE" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'PHONE';}">
+			<input type="tel" name="usrtel" value="PHONE" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'PHONE';}" id="phone">
 			<input type="email" name="email" value="EMAIL ADDRESS" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'EMAIL ADDRESS';}">
 			<input type="password" name="psw" value="PASSWORD" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'PASSWORD';}">
 			<input type="submit" class="register" value="Register">
@@ -32,6 +32,12 @@
 <div class="footer">
 	<p>Copyright &copy;  <a href="http://www.baizhiedu.com/" target="_blank" title="百知教育">百知教育</a></p>
 </div>
+<script>
+    $("#phone").blur(function(){
+        val = $("#phone").val()
+
+    })
+</script>
 
 </body>
 </html>
