@@ -57,7 +57,7 @@ def getDatas(city, key='', pn='', sk='', sc='', sa='', exp='', isasy=False):
 
 def getDatasFromMysql():
     """"""
-    
+
 
 
 
