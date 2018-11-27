@@ -27,7 +27,6 @@
 						<div id="box_top">搜索</div>
 						<div id="box_center">
 							<select name="fangyuanEntity.fyXqCode" id="fyXq" class="ui_select01">
-                                <option value="0">--请选择--</option>
                                 <option value="1">城市</option>
                                 <option value="2">职位</option>
                             </select>
@@ -50,9 +49,9 @@
 						<tr>
 							<th>职位</th>
 							<th>公司</th>
-							<th>月薪</th>
+							<th id="salary" class="0" style="cursor: pointer">月薪</th>
 							<th>任职要求</th>
-							<th>经验要求</th>
+							<th id="exp" class="0"  style="cursor: pointer">经验要求</th>
 							<th>学历要求</th>
 							<th>公司地点</th>
 						</tr>
@@ -64,11 +63,9 @@
 				<div class="ui_tb_h30">
 					<div class="ui_flt" style="height: 30px; line-height: 30px;">
 						共有
-						<span class="ui_txt_bold04">90</span>
+						<span id="job_total" class="ui_txt_bold04">90</span>
 						条记录，当前第
-						<span class="ui_txt_bold04" id="cur_page">1
-						/
-						</span>
+						<span class="ui_txt_bold04" id="cur_page">1</span>/
                         <span id="page_total" class="ui_txt_bold04"></span>
 						页
 					</div>
@@ -98,6 +95,8 @@
         exp = "";
         pn = 1;
         page_total = "";
+        {#$("#page_total").text("{{  }}")#}
+        {#$("#job_total").text("{{  }}")#}
         {#suggest的函数#}
         //监听输入框的键盘(输入)事件
          $("#fyZldz").keyup(function () {
@@ -151,26 +150,13 @@
          });
         {#   搜索框的函数 #}
         $("#search_btn").click(function () {
-            var s_type  = $("#fyXq option:selected").val();
-            var content = $("#fyZldz").val();
-            console.log(s_type,content);
+            sk  = $("#fyXq option:selected").val();
+            sc = $("#fyZldz").val();
+            console.log(sk,sc);
             $.ajax({
                  type: "get",//请求方式get/post
                  url: "{% url 'show:menu' %}",//请求地址
-                 data: {"sc" : content, "sk":s_type, "city":city,"key":key,"salary":salary,"exp":exp,"pn":pn},//请求参数
-                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
-                 //是解析后的js对象
-                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
-                     console.log("OK!")
-                 }
-             });
-        });
-        {# 上一页、下一页、跳转、首页、尾页的函数   #}
-        function jump_page(pn) {
-            $.ajax({
-                 type: "get",//请求方式get/post
-                 url: "{% url 'show:menu' %}",//请求地址
-                 data: {"sc" : sc, "sk":sk, "city":city,"key":key,"salary":salary,"exp":exp,"pn":pn,"isasy":1},//请求参数
+                 data: {"sc" : sc, "sk":sk,"salary":salary,"exp":exp,"pn":pn,"isasy":1},//请求参数
                  dataType: "json",//声明当前的响应为json格式，则success中的abc就
                  //是解析后的js对象
                  success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
@@ -202,6 +188,54 @@
                          '</td>' +
                          '</tr>')
                      }
+                     $("#jumpNumTxt").val(pn);
+                     $("#cur_page").text(pn);
+                     $("#page_total").text(abc.page.num_pages);
+                     $("#job_total").text(abc.total_count);
+                 }
+             });
+        });
+        {# 上一页、下一页、跳转、首页、尾页的函数   #}
+        function jump_page(pn) {
+            $.ajax({
+                 type: "get",//请求方式get/post
+                 url: "{% url 'show:menu' %}",//请求地址
+                 data: {"city":city,"key":key,"salary":salary,"exp":exp,"pn":pn,"isasy":1},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     var job = abc.page["objects"];
+                     $("#show_job").empty();
+                     page_total = parseInt(abc.page.num_pages)-1;
+                     for(var i=0; i<job.length;i++){
+                         $("#show_job").append('<tr>' +
+                         '<td>' +
+                         job[i].job_title +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_name +
+                         '</td>' +
+                         '<td>' +
+                         job[i].salary +
+                         '</td>' +
+                         '<td>' +
+                         job[i].job_description +
+                         '</td>' +
+                         '<td>' +
+                         job[i].experience +
+                         '</td>' +
+                         '<td>' +
+                         job[i].degree +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_address +
+                         '</td>' +
+                         '</tr>')
+                     }
+                     $("#jumpNumTxt").val(pn);
+                     $("#cur_page").text(pn);
+                     $("#page_total").text(abc.page.num_pages);
+                     $("#job_total").text(abc.total_count);
                  }
              });
         }
@@ -234,6 +268,91 @@
             jump_page(pn);
             $("#jumpNumTxt").val(pn);
             $("#cur_page").val(pn)
+        });
+        function sort_func(field,statu) {
+            console.log(field,statu);
+            console.log("全局",exp,salary)
+            $.ajax({
+                 type: "get",//请求方式get/post
+                 url: "{% url 'show:menu' %}",//请求地址
+                 data: {"sf":field,"sd":statu},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     console.log("ok");
+                     {#var job = abc.page["objects"];#}
+                     {#$("#show_job").empty();#}
+                     {#page_total = parseInt(abc.page.num_pages)-1;#}
+                     {#for(var i=0; i<job.length;i++){#}
+                     {#    $("#show_job").append('<tr>' +#}
+                     {#    '<td>' +#}
+                     {#    job[i].job_title +#}
+                     {#    '</td>' +#}
+                     {#    '<td>' +#}
+                     {#    job[i].company_name +#}
+                     {#    '</td>' +#}
+                     {#    '<td>' +#}
+                     {#    job[i].salary +#}
+                     {#    '</td>' +#}
+                     {#    '<td>' +#}
+                     {#    job[i].job_description +#}
+                     {#    '</td>' +#}
+                     {#    '<td>' +#}
+                     {#    job[i].experience +#}
+                     {#    '</td>' +#}
+                     {#    '<td>' +#}
+                     {#    job[i].degree +#}
+                     {#    '</td>' +#}
+                     {#    '<td>' +#}
+                     {#    job[i].company_address +#}
+                     {#    '</td>' +#}
+                     {#    '</tr>')#}
+                 }
+             });
+        }
+        $("#salary").click(function () {
+            salary = $(this).attr("class");
+            $("#exp").attr("class","0");
+            $("#exp").text("经验要求");
+            exp = "0";
+            if (salary=='0'){
+                $(this).attr("class","1");
+                salary = $(this).attr("class");
+                sort_func('1',salary);
+                $(this).text("月薪↓");
+            }else if(salary=='1'){
+                $(this).attr("class","2");
+                salary = $(this).attr("class");
+                 sort_func('1',salary);
+                $(this).text("月薪↑");
+            }else if(salary=='2'){
+                $(this).attr("class","0");
+                salary = $(this).attr("class");
+                 sort_func('1',salary);
+                $(this).text("月薪");
+            }
+        });
+        $("#exp").click(function () {
+            exp = $(this).attr("class");
+            $("#salary").attr("class","0");
+            $("#salary").text("月薪");
+            salary = "0";
+            if (exp=='0'){
+                $(this).attr("class","1");
+                exp = $(this).attr("class");
+                sort_func('2',exp);
+                $(this).text("经验要求↓");
+            }else if(exp=='1'){
+                $(this).attr("class","2");
+                exp = $(this).attr("class");
+                sort_func('2',exp);
+                $(this).text("经验要求↑");
+            }else if(exp=='2'){
+                $(this).attr("class","0");
+                exp = $(this).attr("class");
+                sort_func('2',exp);
+                $(this).text("经验要求");
+            }
         })
     </script>
 </body>
