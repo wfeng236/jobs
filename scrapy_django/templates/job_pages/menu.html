@@ -26,14 +26,20 @@
 					<div id="box_border">
 						<div id="box_top">搜索</div>
 						<div id="box_center">
-							<select name="fangyuanEntity.fyXqCode" id="fyXq" class="ui_select01" onchange="getFyDhListByFyXqCode();">
-                                <option value=""
-                                >--请选择--</option>
-                                <option value="">城市</option>
-                                <option value="">职位</option>
+							<select name="fangyuanEntity.fyXqCode" id="fyXq" class="ui_select01">
+                                <option value="0">--请选择--</option>
+                                <option value="1">城市</option>
+                                <option value="2">职位</option>
                             </select>
 							<input type="text" id="fyZldz" name="fangyuanEntity.fyZldz" class="ui_input_txt02" />
-							<input type="button" value="查询" class="ui_input_btn01" onclick="search();" /> 
+                            <div id="show_suggests" style="display:none;border:1px solid gray;width:200px">
+                                <table style="width:200px">
+                                    <tbody id="siggests">
+
+                                    </tbody>
+                                </table>
+                            </div>
+							<input id="search_btn" type="button" value="查询" class="ui_input_btn01" />
 						</div>
 					</div>
 				</div>
@@ -67,29 +73,150 @@
 						共有
 						<span class="ui_txt_bold04">90</span>
 						条记录，当前第
-						<span class="ui_txt_bold04">1
+						<span class="ui_txt_bold04" id="cur_page">1
 						/
-						9</span>
+						</span>
+                        <span id="page_total" class="ui_txt_bold04"></span>
 						页
 					</div>
 					<div class="ui_frt">
 						<!--    如果是第一页，则只显示下一页、尾页 -->
 						
-							<input type="button" value="首页" class="ui_input_btn01" />
-							<input type="button" value="上一页" class="ui_input_btn01" />
-							<input type="button" value="下一页" class="ui_input_btn01"
-								onclick="jumpNormalPage(2);" />
-							<input type="button" value="尾页" class="ui_input_btn01"
-								onclick="jumpNormalPage(9);" />
+							<input id="f_page" type="button" value="首页" class="ui_input_btn01" />
+							<input id="p_page" type="button" value="上一页" class="ui_input_btn01" />
+							<input id="n_page" type="button" value="下一页" class="ui_input_btn01"/>
+							<input id="l_page" type="button" value="尾页" class="ui_input_btn01"/>
 							<!--     如果是最后一页，则只显示首页、上一页 -->
 						
-						转到第<input type="text" id="jumpNumTxt" class="ui_input_txt01" />页
-							 <input type="button" class="ui_input_btn01" value="跳转" onclick="jumpInputPage(9);" />
+						转到第<input type="text" id="jumpNumTxt" class="ui_input_txt01" value="1"/>页
+							 <input id="jump_page" type="button" class="ui_input_btn01" value="跳转" />
 					</div>
 				</div>
 			</div>
 		</div>
 	</form>
+    <script type="text/javascript">
+        var csrftoken = "{{ csrf_token }}";
+        sc = "";
+        sk = "";
+        city = "";
+        key = "";
+        salary = "";
+        exp = "";
+        pn = "";
+        page_total = "";
+        {#suggest的函数#}
+        //监听输入框的键盘(输入)事件
+         $("#fyZldz").keyup(function () {
+             //console.log(e.keyCode);
+             //清除提示框中的旧信息
+             var s_type  = $("#fyXq option:selected").val();
+             xhr = new XMLHttpRequest();
+             var content = $(this).val();
+             $.ajaxSetup({headers: {"X-CSRFToken": csrftoken}});
+             $.ajax({
+                 type: "post",//请求方式get/post
+                 url: "/show/main/suggest/",//请求地址
+                 data: {"message" : content, "type":s_type},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     suggest = abc.result;
+                     $("#siggests").empty();
+                     if (suggest.length > 0 && content) {
+                         //从数据源中检索相关数据
+                         for (var i = 0; i < suggest.length; i++) {
+                             //验证数据源中的数据data[i]是否和用户输入的txt
+                             //相关
+                             $("#siggests").append("<tr>" +
+                                 "<td>" + suggest[i] + "</td>" +
+                                 "</tr>")
+                         }
+                         $("#show_suggests").show();
+                     } else {
+                         //隐藏提示框
+                         $("#show_suggests").hide();
+                     }
+                 }
+             });
 
+             //为提示框中的提示项增加效果
+             $("#siggests").on("mouseover", "tr", function () {
+                 $(this).css("background-color", "#abcdef");
+             });
+             $("#siggests").on("mouseout", "tr", function () {
+                 $(this).css("background-color", "#ffffff");
+             });
+             //为提示框中的提示项增加单击事件
+             $("#siggests").on("click", "tr", function () {
+                 //将当前tr中的text设置给文本框
+                 var msg = $(this).text();
+                 $("#fyZldz").val(msg);
+                 //隐藏提示框
+                 $("#show_suggests").hide();
+             });
+         });
+        {#   搜索框的函数 #}
+        $("#search_btn").click(function () {
+            var s_type  = $("#fyXq option:selected").val();
+            var content = $("#fyZldz").val();
+            console.log(s_type,content)
+            $.ajax({
+                 type: "get",//请求方式get/post
+                 url: "{% url 'show:menu' %}",//请求地址
+                 data: {"sc" : content, "sk":s_type, "city":city,"key":key,"salary":salary,"exp":exp,"pn":pn},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     console.log("OK!")
+                 }
+             });
+        });
+        {# 上一页、下一页、跳转、首页、尾页的函数   #}
+        function jump_page(pn) {
+            var s_type  = $("#fyXq option:selected").val();
+            var content = $("#fyZldz").val();
+            $.ajax({
+                 type: "get",//请求方式get/post
+                 url: "{% url 'show:menu' %}",//请求地址
+                 data: {"sc" : sc, "sk":sk, "city":city,"key":key,"salary":salary,"exp":exp,"pn":pn},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     console.log("OK!")
+                 }
+             });
+        }
+        $("#f_page").click(function () {
+            pn = 1;
+            jump_page(pn);
+            $("#jumpNumTxt").val(pn);
+            $("#cur_page").val(pn)
+        });
+        $("#l_page").click(function () {
+            pn = page_total;
+            jump_page(pn);
+            $("#jumpNumTxt").val(pn);
+            $("#cur_page").val(pn)
+        });
+        $("#p_page").click(function () {
+            pn += 1;
+            jump_page(pn);
+            $("#jumpNumTxt").val(pn);
+            $("#cur_page").val(pn)
+        });
+        $("#n_page").click(function () {
+            pn -= 1;
+            jump_page(pn);
+            $("#jumpNumTxt").val(pn);
+            $("#cur_page").val(pn)
+        });
+        $("#jump_page").click(function () {
+            pn = $("#jumpNumTxt").val();
+            jump_page(pn);
+            $("#jumpNumTxt").val(pn);
+            $("#cur_page").val(pn)
+        })
+    </script>
 </body>
 </html>

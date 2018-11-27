@@ -1,3 +1,5 @@
+import re
+
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -108,8 +110,6 @@ def getDatasFromMysql(city, key):
     """
     return Hoteljob.objects.filter(city__icontains=city, job_type__icontains=key).values('job_title', 'company_name', 'salary', 'job_description', 'experience', 'degree', 'company_address')
 
-
-
 def getDatasFromHbase(city, key):
     """
     从hbase中查询数据
@@ -135,6 +135,68 @@ def getDatasFromHbase(city, key):
     #     print(k.decode('utf-8'),v)  # key= rowkey   value=data  返回的二进制字符串
     return [{k1.decode('utf-8'):v1.decode('utf-8') for k1, v1 in v.items()} for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')"%(city, key))]
 
+
+
+def suggest_ajax(request):
+    """
+    ajax异步接收搜索框传来的数据，并进行正则匹配，将匹配的数据用json返回
+    :param request:
+    :return:
+    """
+    # 下拉表单的值：0：未选择；1：城市；2：职位；
+    area = request.POST.get("type")
+    # 搜索框中的内容
+    words = request.POST.get("message")
+    # 将搜索框中的字母转为小写
+    words = words.lower()
+    # 城市匹配数据库
+    suggests_city = """
+北京
+上海
+广州
+深圳
+beijing 
+shanghai
+guangzhou
+shenzhen"""
+    # 职位匹配数据库
+    suggests_key = """
+ai
+python web
+大数据
+dashuju
+爬虫
+pachong"""
+    # 全部匹配
+    suggests = """
+北京
+上海
+广州
+深圳
+beijing 
+shanghai
+guangzhou
+shenzhen
+ai
+python web
+大数据
+dashuju
+爬虫
+pachong"""
+    # 匹配城市
+    if area == "1":
+        rule = re.compile('.*' + words + '.*', re.M)
+        result = rule.findall(suggests_city)
+    # 匹配职业
+    elif area == "2":
+        rule = re.compile('.*' + words + '.*', re.M)
+        result = rule.findall(suggests_key)
+    # 全部匹配
+    else:
+        rule = re.compile('.*' + words + '.*', re.M)
+        result = rule.findall(suggests)
+    print(words,result,area)
+    return JsonResponse({"result": result})
 
 
 
