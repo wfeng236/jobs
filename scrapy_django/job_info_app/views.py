@@ -5,6 +5,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from job_info_app.models import Hoteljob
+from job_info_app.my_utils import sortData
 from job_info_app.paging import paginator, MyPaginator
 import happybase as hb
 
@@ -46,32 +47,37 @@ def menu_page(request):
     sk = request.GET.get('sk')
     # 搜索内容
     sc = request.GET.get('sc')
-    # 根据薪水排序
-    sa = request.GET.get('sa')
-    # 根据经验排序
-    exp = request.GET.get('exp')
+
     # 是否是异步请求
     isasy = request.GET.get('isasy')
-    print('params: ', city, key, pn, sk, sc, sa, exp, isasy)
+    print('params: ', city, key, pn, sk, sc, isasy)
+    params = {
+        'city': city,
+        'key': key,
+    }
 
     # request.session['sortdict'] = {'sa': '', 'exp': '',}
-    login_state = request.session.get('login_state')
+    login_state = request.session.get('login_state') or 1
     # 如果没有登录的情况下想访问10页后的内容，不让访问
     # if pn>10 and not request.session.get('login_state'):
     #     return JsonResponse({'result': 0, 'msg': '请登录后再访问!!!'})
 
     # 2.查询数据
-    datas = getDatas(city, key, pn, sk, sc, sa, exp)
+    # sk=='1'('2') 表示搜索类型为城市(职位)，搜索内容为sc
+    if sk == '1':
+        city = sc
+        key = ''
+    elif sk == '2':
+        key = sc
+        city = ''
+
+    datas = getDatas(city, key, login_state)
+    request.session['datas'] = datas
 
     # 3. 分页 封装数据 字典格式
-    page = MyPaginator(datas, 10).pageDict(pn)
-
-    resp = {
-        'result': 1,
-        'page': page,
-        'total_count': len(datas),
-    }
+    resp = pages(datas, pn)
     print(resp)
+    resp.update({'params': params})
 
     # 4. 响应
     if isasy:
@@ -79,31 +85,55 @@ def menu_page(request):
     else:
         return render(request, 'job_pages/menu.html', resp)
 
-def getDatas(city, key, pn=1, sk='', sc='', sa='', exp=''):
-    """"""
+def pages(datas, pn):
+    page = MyPaginator(datas, 10).pageDict(pn)
+    return {
+        'result': 1,
+        'page': page,
+        'total_count': len(datas),
+    }
 
-    # sk=='1'('2') 表示搜索类型为城市(职位)，搜索内容为sc
-    if sk=='1':
-        city = sc
-    elif sk=='2':
-        key = sc
+def dataSort(request):
+    """
 
-    # pn<=10, 从mysql获取数据
-    if pn <= 10:
-        alldatas = getDatasFromMysql(city, key)
-    else:
-    # pn>10, 从hbase 获取数据
-        alldatas = getDatasFromHbase(city, key)
+    :param request:
+    :return:
+    """
+    # 排序字段 1：salary 2：experience
+    sf = request.GET.get('sa') or '0'
+    # 排序方向 1：asc 2：desc
+    sd = request.GET.get('exp') or '0'
+    datas = request.session.get('datas')
+    pn = request.session.get('pn', 1)
+    if sf == sd == '0':
+        return JsonResponse(pages(datas, pn))
+    return JsonResponse(pages(sortData(datas, sf, sd), pn))
 
-    # if sa:
-    #     pass
 
-    print('alldatas: ', alldatas)
+def getDatas(city, key, login_state=''):
+    """
+    查询数据
+    :param city:
+    :param key:
+    :param login_state:
+    :return:
+    """
+    # 如果未登录，只能看10页, 从mysql获取数据
+    datas = list(getDatasFromMysql(city, key))
+    hbasedatas = []
+    # 登录了，全查, 从hbase 获取数据
+    if login_state:
+        hdatas = getDatasFromHbase(city, key)
+        hbasedatas = [{k.replace('show:', ''): v for k,v in d.items()} for d in hdatas if hdatas]
+
+    print('mysqldatas: ', datas)
+    print('hbasedatas: ', hbasedatas)
     # for d in alldatas:
     #     for k,v in d.items():
     #         print(k, v)
+    datas.extend(hbasedatas)
 
-    return alldatas
+    return datas
 
 
 def getDatasFromMysql(city, key):
@@ -138,7 +168,7 @@ def getDatasFromHbase(city, key):
     #     restr = key
     # for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*')"%(city, key)):
     #     print(k.decode('utf-8'),v)  # key= rowkey   value=data  返回的二进制字符串
-    return [{k1.decode('utf-8'):v1.decode('utf-8') for k1, v1 in v.items()} for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')"%(city, key))]
+    return [{k1.decode('utf-8'):v1.decode('utf-8') for k1, v1 in v.items()} for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')"%(city, key), columns=('show',))]
 
 
 
@@ -160,7 +190,7 @@ def suggest_ajax(request):
 上海
 广州
 深圳
-beijing 
+beijing
 shanghai
 guangzhou
 shenzhen"""
@@ -178,7 +208,7 @@ pachong"""
 上海
 广州
 深圳
-beijing 
+beijing
 shanghai
 guangzhou
 shenzhen
