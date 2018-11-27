@@ -5,7 +5,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from job_info_app.models import Hoteljob
-from job_info_app.paging import paginator
+from job_info_app.paging import paginator, MyPaginator
 import happybase as hb
 
 code2city = {
@@ -59,11 +59,12 @@ def menu_page(request):
     # 如果没有登录的情况下想访问10页后的内容，不让访问
     # if pn>10 and not request.session.get('login_state'):
     #     return JsonResponse({'result': 0, 'msg': '请登录后再访问!!!'})
+
     # 2.查询数据
     datas = getDatas(city, key, pn, sk, sc, sa, exp)
 
     # 3. 分页 封装数据 字典格式
-    page = 1 or paginator(datas, 10, pn)
+    page = MyPaginator(datas, 10).pageDict(pn)
 
     resp = {
         'result': 1,
@@ -93,6 +94,10 @@ def getDatas(city, key, pn=1, sk='', sc='', sa='', exp=''):
     else:
     # pn>10, 从hbase 获取数据
         alldatas = getDatasFromHbase(city, key)
+
+    # if sa:
+    #     pass
+
     print('alldatas: ', alldatas)
     # for d in alldatas:
     #     for k,v in d.items():
