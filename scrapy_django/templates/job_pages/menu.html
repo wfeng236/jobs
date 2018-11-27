@@ -56,16 +56,9 @@
 							<th>学历要求</th>
 							<th>公司地点</th>
 						</tr>
-							<tr>
-								<td>AI</td>
-								<td>百度</td>
-								<td>30k-50k</td>
-								<td>没要求</td>
-								<td>没要求</td>
-								<td>没要求</td>
-								<td>北京</td>
-							</tr>
-		
+                    <tbody id="show_job">
+
+                    </tbody>
 					</table>
 				</div>
 				<div class="ui_tb_h30">
@@ -103,7 +96,7 @@
         key = "";
         salary = "";
         exp = "";
-        pn = "";
+        pn = 1;
         page_total = "";
         {#suggest的函数#}
         //监听输入框的键盘(输入)事件
@@ -160,7 +153,7 @@
         $("#search_btn").click(function () {
             var s_type  = $("#fyXq option:selected").val();
             var content = $("#fyZldz").val();
-            console.log(s_type,content)
+            console.log(s_type,content);
             $.ajax({
                  type: "get",//请求方式get/post
                  url: "{% url 'show:menu' %}",//请求地址
@@ -174,16 +167,41 @@
         });
         {# 上一页、下一页、跳转、首页、尾页的函数   #}
         function jump_page(pn) {
-            var s_type  = $("#fyXq option:selected").val();
-            var content = $("#fyZldz").val();
             $.ajax({
                  type: "get",//请求方式get/post
                  url: "{% url 'show:menu' %}",//请求地址
-                 data: {"sc" : sc, "sk":sk, "city":city,"key":key,"salary":salary,"exp":exp,"pn":pn},//请求参数
+                 data: {"sc" : sc, "sk":sk, "city":city,"key":key,"salary":salary,"exp":exp,"pn":pn,"isasy":1},//请求参数
                  dataType: "json",//声明当前的响应为json格式，则success中的abc就
                  //是解析后的js对象
                  success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
-                     console.log("OK!")
+                     var job = abc.page["objects"];
+                     $("#show_job").empty();
+                     page_total = parseInt(abc.page.num_pages)-1;
+                     for(var i=0; i<job.length;i++){
+                         $("#show_job").append('<tr>' +
+                         '<td>' +
+                         job[i].job_title +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_name +
+                         '</td>' +
+                         '<td>' +
+                         job[i].salary +
+                         '</td>' +
+                         '<td>' +
+                         job[i].job_description +
+                         '</td>' +
+                         '<td>' +
+                         job[i].experience +
+                         '</td>' +
+                         '<td>' +
+                         job[i].degree +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_address +
+                         '</td>' +
+                         '</tr>')
+                     }
                  }
              });
         }
@@ -191,22 +209,22 @@
             pn = 1;
             jump_page(pn);
             $("#jumpNumTxt").val(pn);
-            $("#cur_page").val(pn)
+            $("#cur_page").val(pn);
         });
         $("#l_page").click(function () {
             pn = page_total;
             jump_page(pn);
             $("#jumpNumTxt").val(pn);
-            $("#cur_page").val(pn)
+            $("#cur_page").val(pn);
         });
         $("#p_page").click(function () {
-            pn += 1;
+            pn = parseInt(pn) - 1;
             jump_page(pn);
             $("#jumpNumTxt").val(pn);
             $("#cur_page").val(pn)
         });
         $("#n_page").click(function () {
-            pn -= 1;
+            pn = parseInt(pn) + 1;
             jump_page(pn);
             $("#jumpNumTxt").val(pn);
             $("#cur_page").val(pn)
