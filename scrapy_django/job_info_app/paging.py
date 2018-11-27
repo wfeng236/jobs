@@ -37,7 +37,7 @@ def paginator(object_list, per_page, current_page):
         'has_prev'  : contacts.has_previous(),
         'next_page' : contacts.next_page_number() if contacts.has_next() else 0,
         'prev_page' : contacts.previous_page_number() if contacts.has_previous() else 0,
-        'objects'   : contacts.object_list,
+        'objects'   : list(contacts.object_list),
         'page_list' : list(contacts.paginator.page_range),
     }
 

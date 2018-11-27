@@ -26,6 +26,7 @@ def main_page(request):
 def introduce_page(request):
     return render(request, 'job_pages/introduce.html')
 
+
 def menu_page(request):
     """
     数据菜单页
@@ -36,7 +37,7 @@ def menu_page(request):
     # 城市
     city = code2city.get(request.GET.get('city') or '1')
     # 职业
-    key = code2job.get(request.GET.get('key') or '1')
+    key = code2job.get(request.GET.get('key') or '3')
     # 页号
     pn = int(request.GET.get('pn') or 1)
     # 搜索类型
@@ -60,7 +61,7 @@ def menu_page(request):
     datas = getDatas(city, key, pn, sk, sc, sa, exp)
 
     # 3. 分页 封装数据 字典格式
-    page = paginator(datas, 10, pn)
+    page = 1 or paginator(datas, 10, pn)
 
     resp = {
         'result': 1,
@@ -87,10 +88,13 @@ def getDatas(city, key, pn=1, sk='', sc='', sa='', exp=''):
     # pn<=10, 从mysql获取数据
     if pn <= 10:
         alldatas = getDatasFromMysql(city, key)
-
     else:
     # pn>10, 从hbase 获取数据
         alldatas = getDatasFromHbase(city, key)
+    print('alldatas: ', alldatas)
+    # for d in alldatas:
+    #     for k,v in d.items():
+    #         print(k, v)
 
     return alldatas
 
@@ -102,9 +106,7 @@ def getDatasFromMysql(city, key):
     :param key:
     :return:
     """
-    alldatas = Hoteljob.objects.filter(city__icontains=city, job_title__icontains=key).values('job_title', 'company_name', 'salary', 'job_description', 'experience', 'degree', 'company_address')
-    print('getDatasFromMysql: ', alldatas)
-    return alldatas
+    return Hoteljob.objects.filter(city__icontains=city, job_type__icontains=key).values('job_title', 'company_name', 'salary', 'job_description', 'experience', 'degree', 'company_address')
 
 
 
@@ -119,15 +121,20 @@ def getDatasFromHbase(city, key):
     # 获取连接
     conn = hb.Connection(host='wnm1', port=9090)
     # 获取表对象
-    table = conn.table('jobs:t_hoteljob')
+    table = conn.table('jobs:t_hoteljob1')
     # 查询数据
-    restr = ':'.join((city, key))
-    print('restr: ', restr)
-    for key, value in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*')"%restr):
-        print(key.decode('utf-8'),value)  # key= rowkey   value=data  返回的二进制字符串
+    # city = ''
+    # key = '大数据'
+    # if city and key:
+    #     restr = '.*'.join((city, key))
+    # elif city:
+    #     restr = city
+    # else:
+    #     restr = key
+    # for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*')"%(city, key)):
+    #     print(k.decode('utf-8'),v)  # key= rowkey   value=data  返回的二进制字符串
+    return [{k1.decode('utf-8'):v1.decode('utf-8') for k1, v1 in v.items()} for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')"%(city, key))]
 
 
-
-    return []
 
 
