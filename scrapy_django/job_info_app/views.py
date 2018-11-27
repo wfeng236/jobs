@@ -5,9 +5,9 @@ from django.shortcuts import render
 
 # Create your views here.
 from job_info_app.models import Hoteljob
-from job_info_app.my_utils import sortData
+from job_info_app.my_log import MyLog
+from job_info_app.my_utils import sortData, getHbaseConn
 from job_info_app.paging import paginator, MyPaginator
-import happybase as hb
 
 code2city = {
     '1': '北京',
@@ -23,8 +23,10 @@ code2job = {
     '4': 'AI',
 }
 
+
 def main_page(request):
     return render(request, 'job_pages/main.html')
+
 
 def introduce_page(request):
     return render(request, 'job_pages/introduce.html')
@@ -51,13 +53,26 @@ def menu_page(request):
     # 是否是异步请求
     isasy = request.GET.get('isasy')
     print('params: ', city, key, pn, sk, sc, isasy)
-    params = {
-        'city': city,
-        'key': key,
-    }
 
     # request.session['sortdict'] = {'sa': '', 'exp': '',}
-    login_state = request.session.get('login_state') or 1
+    login_user = request.session.get('login_user')
+    return deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user)
+
+
+@MyLog
+def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
+    """
+
+    :param request:
+    :param city:
+    :param key:
+    :param pn:
+    :param sk:
+    :param sc:
+    :param isasy:
+    :param login_user:
+    :return:
+    """
     # 如果没有登录的情况下想访问10页后的内容，不让访问
     # if pn>10 and not request.session.get('login_state'):
     #     return JsonResponse({'result': 0, 'msg': '请登录后再访问!!!'})
@@ -71,19 +86,22 @@ def menu_page(request):
         key = sc
         city = ''
 
-    datas = getDatas(city, key, login_state)
+    datas = getDatas(city, key, login_user)[:300]
     request.session['datas'] = datas
+    request.session['pn'] = pn
 
     # 3. 分页 封装数据 字典格式
     resp = pages(datas, pn)
     print(resp)
-    resp.update({'params': params})
+    resp.update({'params': {'city': city, 'key': key}})
+    print(len(datas))
 
     # 4. 响应
     if isasy:
         return JsonResponse(resp)
     else:
         return render(request, 'job_pages/menu.html', resp)
+
 
 def pages(datas, pn):
     page = MyPaginator(datas, 10).pageDict(pn)
@@ -92,6 +110,7 @@ def pages(datas, pn):
         'page': page,
         'total_count': len(datas),
     }
+
 
 def dataSort(request):
     """
@@ -110,7 +129,7 @@ def dataSort(request):
     return JsonResponse(pages(sortData(datas, sf, sd), pn))
 
 
-def getDatas(city, key, login_state=''):
+def getDatas(city, key, login_user=''):
     """
     查询数据
     :param city:
@@ -122,9 +141,9 @@ def getDatas(city, key, login_state=''):
     datas = list(getDatasFromMysql(city, key))
     hbasedatas = []
     # 登录了，全查, 从hbase 获取数据
-    if login_state:
+    if login_user:
         hdatas = getDatasFromHbase(city, key)
-        hbasedatas = [{k.replace('show:', ''): v for k,v in d.items()} for d in hdatas if hdatas]
+        hbasedatas = [{k.replace('show:', ''): v for k, v in d.items()} for d in hdatas if hdatas]
 
     print('mysqldatas: ', datas)
     print('hbasedatas: ', hbasedatas)
@@ -143,7 +162,9 @@ def getDatasFromMysql(city, key):
     :param key:
     :return:
     """
-    return Hoteljob.objects.filter(city__icontains=city, job_type__icontains=key).values('job_title', 'company_name', 'salary', 'job_description', 'experience', 'degree', 'company_address')
+    return Hoteljob.objects.filter(city__icontains=city, job_type__icontains=key).\
+        values('job_title', 'company_name', 'salary', 'job_description', 'experience', 'degree', 'company_address')
+
 
 def getDatasFromHbase(city, key):
     """
@@ -154,7 +175,7 @@ def getDatasFromHbase(city, key):
     """
     # 'wnm1'是域名，需要在计算机中配置
     # 获取连接
-    conn = hb.Connection(host='wnm1', port=9090)
+    conn = getHbaseConn()
     # 获取表对象
     table = conn.table('jobs:t_hoteljob1')
     # 查询数据
@@ -168,8 +189,8 @@ def getDatasFromHbase(city, key):
     #     restr = key
     # for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*')"%(city, key)):
     #     print(k.decode('utf-8'),v)  # key= rowkey   value=data  返回的二进制字符串
-    return [{k1.decode('utf-8'):v1.decode('utf-8') for k1, v1 in v.items()} for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')"%(city, key), columns=('show',))]
-
+    return [{k1.decode('utf-8'): v1.decode('utf-8') for k1, v1 in v.items()} for k, v in
+            table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')" % (city, key), columns=('show',))]
 
 
 def suggest_ajax(request):
@@ -230,8 +251,5 @@ pachong"""
     else:
         rule = re.compile('.*' + words + '.*', re.M)
         result = rule.findall(suggests)
-    print(words,result,area)
+    print(words, result, area)
     return JsonResponse({"result": result})
-
-
-

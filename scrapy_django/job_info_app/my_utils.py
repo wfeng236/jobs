@@ -10,6 +10,10 @@
 '''
 from operator import itemgetter, attrgetter
 import functools
+import happybase as hb
+
+def getHbaseConn():
+    return hb.Connection(host='wnm1', port=9090)
 
 fieldDict = {
     '1': 'salary',
