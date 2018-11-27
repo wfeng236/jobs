@@ -78,7 +78,7 @@
 							<input id="l_page" type="button" value="尾页" class="ui_input_btn01"/>
 							<!--     如果是最后一页，则只显示首页、上一页 -->
 						
-						转到第<input type="text" id="jumpNumTxt" class="ui_input_txt01" value="1"/>页
+						转到第<input type="text" id="jumpNumTxt" class="ui_input_txt01" value="1" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" />页
 							 <input id="jump_page" type="button" class="ui_input_btn01" value="跳转" />
 					</div>
 				</div>
@@ -152,6 +152,8 @@
         $("#search_btn").click(function () {
             sk  = $("#fyXq option:selected").val();
             sc = $("#fyZldz").val();
+            city = '';
+            key = '';
             console.log(sk,sc);
             $.ajax({
                  type: "get",//请求方式get/post
@@ -200,7 +202,7 @@
             $.ajax({
                  type: "get",//请求方式get/post
                  url: "{% url 'show:menu' %}",//请求地址
-                 data: {"city":city,"key":key,"salary":salary,"exp":exp,"pn":pn,"isasy":1},//请求参数
+                 data: {"city":city,"key":key,"salary":salary,"exp":exp,"pn":pn,"isasy":1,"sk":sk,"sc":sc},//请求参数
                  dataType: "json",//声明当前的响应为json格式，则success中的abc就
                  //是解析后的js对象
                  success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
@@ -252,10 +254,12 @@
             $("#cur_page").val(pn);
         });
         $("#p_page").click(function () {
-            pn = parseInt(pn) - 1;
-            jump_page(pn);
-            $("#jumpNumTxt").val(pn);
-            $("#cur_page").val(pn)
+            if (pn>1){
+                pn = parseInt(pn) - 1;
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }
         });
         $("#n_page").click(function () {
             pn = parseInt(pn) + 1;
@@ -264,10 +268,19 @@
             $("#cur_page").val(pn)
         });
         $("#jump_page").click(function () {
-            pn = $("#jumpNumTxt").val();
-            jump_page(pn);
-            $("#jumpNumTxt").val(pn);
-            $("#cur_page").val(pn)
+            if ($("#jumpNumTxt").val()>page_total){
+                $("#jumpNumTxt").val(page_total);
+                pn = $("#jumpNumTxt").val();
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }else if ($("#jumpNumTxt").val()<1){
+                $("#jumpNumTxt").val('1');
+                pn = $("#jumpNumTxt").val();
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }
         });
         function sort_func(field,statu) {
             console.log(field,statu);
