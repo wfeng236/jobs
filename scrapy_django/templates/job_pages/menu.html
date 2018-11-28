@@ -14,6 +14,18 @@
 <script type="text/javascript">
 </script>
 <style>
+    .title{
+        width: 100px;
+    }
+    .title1{
+        width: 50px;
+    }
+    #salary{
+        width: 50px;
+    }
+        #exp{
+        width: 50px;
+    }
 </style>
 </head>
 <body>
@@ -26,14 +38,19 @@
 					<div id="box_border">
 						<div id="box_top">搜索</div>
 						<div id="box_center">
-							<select name="fangyuanEntity.fyXqCode" id="fyXq" class="ui_select01" onchange="getFyDhListByFyXqCode();">
-                                <option value=""
-                                >--请选择--</option>
-                                <option value="">城市</option>
-                                <option value="">职位</option>
+							<select name="fangyuanEntity.fyXqCode" id="fyXq" class="ui_select01">
+                                <option value="1">城市</option>
+                                <option value="2">职位</option>
                             </select>
 							<input type="text" id="fyZldz" name="fangyuanEntity.fyZldz" class="ui_input_txt02" />
-							<input type="button" value="查询" class="ui_input_btn01" onclick="search();" /> 
+                            <div id="show_suggests" style="display:none;border:1px solid gray;width:200px">
+                                <table style="width:200px">
+                                    <tbody id="siggests">
+
+                                    </tbody>
+                                </table>
+                            </div>
+							<input id="search_btn" type="button" value="查询" class="ui_input_btn01" />
 						</div>
 					</div>
 				</div>
@@ -42,54 +59,368 @@
 				<div class="ui_tb">
 					<table class="table" cellspacing="0" cellpadding="0" width="100%" align="center" border="0">
 						<tr>
-							<th>职位</th>
-							<th>公司</th>
-							<th>月薪</th>
-							<th>任职要求</th>
-							<th>经验要求</th>
-							<th>学历要求</th>
-							<th>公司地点</th>
+							<th class="title">职位</th>
+							<th class="title">公司</th>
+							<th id="salary" class="0" style="cursor: pointer">月薪</th>
+							<th class="title">任职要求</th>
+							<th id="exp" class="0"  style="cursor: pointer">经验要求</th>
+							<th class="title1">学历要求</th>
+							<th class="title">公司地点</th>
 						</tr>
-							<tr>
-								<td>AI</td>
-								<td>百度</td>
-								<td>30k-50k</td>
-								<td>没要求</td>
-								<td>没要求</td>
-								<td>没要求</td>
-								<td>北京</td>
-							</tr>
-		
+                    <tbody id="show_job">
+                    {% for foo in page.objects %}
+                        <tr>
+                            <td>{{ foo.job_title }}</td>
+                            <td>{{ foo.company_name }}</td>
+                            <td>{{ foo.salary }}</td>
+                            <td>{{ foo.job_description }}</td>
+                            <td>{{ foo.exp }}</td>
+                            <td>{{ foo.degree }}</td>
+                            <td>{{ foo.company_address }}</td>
+                        </tr>
+                    {% endfor %}
+
+
+                    </tbody>
 					</table>
 				</div>
 				<div class="ui_tb_h30">
 					<div class="ui_flt" style="height: 30px; line-height: 30px;">
 						共有
-						<span class="ui_txt_bold04">90</span>
+						<span id="job_total" class="ui_txt_bold04">{{ total_count }}</span>
 						条记录，当前第
-						<span class="ui_txt_bold04">1
-						/
-						9</span>
+						<span class="ui_txt_bold04" id="cur_page">1</span>/
+                        <span id="page_total" class="ui_txt_bold04">{{ page.num_pages }}</span>
 						页
 					</div>
 					<div class="ui_frt">
 						<!--    如果是第一页，则只显示下一页、尾页 -->
 						
-							<input type="button" value="首页" class="ui_input_btn01" />
-							<input type="button" value="上一页" class="ui_input_btn01" />
-							<input type="button" value="下一页" class="ui_input_btn01"
-								onclick="jumpNormalPage(2);" />
-							<input type="button" value="尾页" class="ui_input_btn01"
-								onclick="jumpNormalPage(9);" />
+							<input id="f_page" type="button" value="首页" class="ui_input_btn01" />
+							<input id="p_page" type="button" value="上一页" class="ui_input_btn01" />
+							<input id="n_page" type="button" value="下一页" class="ui_input_btn01"/>
+							<input id="l_page" type="button" value="尾页" class="ui_input_btn01"/>
 							<!--     如果是最后一页，则只显示首页、上一页 -->
 						
-						转到第<input type="text" id="jumpNumTxt" class="ui_input_txt01" />页
-							 <input type="button" class="ui_input_btn01" value="跳转" onclick="jumpInputPage(9);" />
+						转到第<input type="text" id="jumpNumTxt" class="ui_input_txt01" value="1" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" />页
+							 <input id="jump_page" type="button" class="ui_input_btn01" value="跳转" />
 					</div>
 				</div>
 			</div>
 		</div>
 	</form>
+    <div id="hide_info_city" class="{{ params.city }}" style="display: none">
+    </div>
+    <div id="hide_info_key" class="{{ params.key }}" style="display: none">
+    </div>
+    <script type="text/javascript">
+        var csrftoken = "{{ csrf_token }}";
+        sc = "";
+        sk = "";
+        city_dict = {'北京':'1','上海':'2','广州':'3','深圳':'4',}
+        key_dict = {'Web':'1','爬虫':'2','大数据':'3','AI':'4',}
+        city = city_dict[$("#hide_info_city").attr('class')];
+        key = key_dict[$("#hide_info_key").attr('class')];
+        console.log(city,key);
+        salary = "";
+        exp = "";
+        pn = 1;
+        sf = '';
+        sd = '';
+        page_total = {{ page.num_pages }};
+        console.log(page_total);
+        function sort_func() {
+            console.log(sf,sd,'ceishi');
+            $.ajax({
+                 type: "get",//请求方式get/post
+                 url: "{% url 'show:sort' %}",//请求地址
+                 data: {"sf":sf,"sd":sd,'isasy':'1'},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
 
+                     var job = abc.page["objects"];
+                     $("#show_job").empty();
+                     page_total = parseInt(abc.page.num_pages);
+                     for(var i=0; i<job.length;i++){
+                         $("#show_job").append('<tr>' +
+                         '<td>' +
+                         job[i].job_title +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_name +
+                         '</td>' +
+                         '<td>' +
+                         job[i].salary +
+                         '</td>' +
+                         '<td>' +
+                         job[i].job_description +
+                         '</td>' +
+                         '<td>' +
+                         job[i].experience +
+                         '</td>' +
+                         '<td>' +
+                         job[i].degree +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_address +
+                         '</td>' +
+                         '</tr>')
+                 }
+                     console.log("ok");
+                 }
+            });
+        }
+        $("#salary").click(function () {
+            salary = $(this).attr("class");
+            sf = '1';
+            $("#exp").attr("class","0");
+            $("#exp").text("经验要求");
+            exp = "0";
+            if (salary=='0'){
+                $(this).attr("class","1");
+                salary = $(this).attr("class");
+                sd = salary;
+                sort_func();
+                $(this).text("月薪↑");
+            }else if(salary=='1'){
+                $(this).attr("class","2");
+                salary = $(this).attr("class");
+                sd = salary;
+                sort_func();
+                $(this).text("月薪↓");
+            }else if(salary=='2'){
+                $(this).attr("class","0");
+                salary = $(this).attr("class");
+                sd = salary;
+                sort_func();
+                $(this).text("月薪");
+            }
+        });
+        $("#exp").click(function () {
+            exp = $(this).attr("class");
+            sf = '2';
+            $("#salary").attr("class","0");
+            $("#salary").text("月薪");
+            salary = "0";
+            if (exp=='0'){
+                $(this).attr("class","1");
+                exp = $(this).attr("class");
+                sd = exp;
+                sort_func();
+                $(this).text("经验要求↑");
+            }else if(exp=='1'){
+                $(this).attr("class","2");
+                exp = $(this).attr("class");
+                sd = exp;
+                sort_func();
+                $(this).text("经验要求↓");
+            }else if(exp=='2'){
+                $(this).attr("class","0");
+                exp = $(this).attr("class");
+                sd = exp;
+                sort_func();
+                $(this).text("经验要求");
+            }
+        });
+        {#suggest的函数#}
+        //监听输入框的键盘(输入)事件
+         $("#fyZldz").keyup(function () {
+             //console.log(e.keyCode);
+             //清除提示框中的旧信息
+             var s_type  = $("#fyXq option:selected").val();
+             xhr = new XMLHttpRequest();
+             var content = $(this).val();
+             $.ajaxSetup({headers: {"X-CSRFToken": csrftoken}});
+             $.ajax({
+                 type: "post",//请求方式get/post
+                 url: "/show/main/suggest/",//请求地址
+                 data: {"message" : content, "type":s_type},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     suggest = abc.result;
+                     $("#siggests").empty();
+                     if (suggest.length > 0 && content) {
+                         //从数据源中检索相关数据
+                         for (var i = 0; i < suggest.length; i++) {
+                             //验证数据源中的数据data[i]是否和用户输入的txt
+                             //相关
+                             $("#siggests").append("<tr>" +
+                                 "<td>" + suggest[i] + "</td>" +
+                                 "</tr>")
+                         }
+                         $("#show_suggests").show();
+                     } else {
+                         //隐藏提示框
+                         $("#show_suggests").hide();
+                     }
+                 }
+             });
+
+             //为提示框中的提示项增加效果
+             $("#siggests").on("mouseover", "tr", function () {
+                 $(this).css("background-color", "#abcdef");
+             });
+             $("#siggests").on("mouseout", "tr", function () {
+                 $(this).css("background-color", "#ffffff");
+             });
+             //为提示框中的提示项增加单击事件
+             $("#siggests").on("click", "tr", function () {
+                 //将当前tr中的text设置给文本框
+                 var msg = $(this).text();
+                 $("#fyZldz").val(msg);
+                 //隐藏提示框
+                 $("#show_suggests").hide();
+             });
+         });
+        {#   搜索框的函数 #}
+        $("#search_btn").click(function () {
+            sk  = $("#fyXq option:selected").val();
+            sc_dict = {'shenzhen':'深圳','shanghai':'上海','beijing':'北京','guangzhou':'广州','dashuju':'大数据','pachong':'爬虫',
+            '深圳':'深圳','上海':'上海','北京':'北京','广州':'广州','大数据':'大数据','爬虫':'爬虫','AI':'AI','ai':'ai','python web':'pythonweb',
+            };
+            sc = sc_dict[$("#fyZldz").val()];
+            city = '';
+            key = '';
+            sf = '';
+            sd = '';
+            console.log(sk,sc);
+            $.ajax({
+                 type: "get",//请求方式get/post
+                 url: "{% url 'show:menu' %}",//请求地址
+                 data: {"sc" : sc, "sk":sk,"salary":salary,"exp":exp,"pn":pn,"isasy":1},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     var job = abc.page["objects"];
+                     $("#show_job").empty();
+                     page_total = parseInt(abc.page.num_pages)-1;
+                     for(var i=0; i<job.length;i++){
+                         $("#show_job").append('<tr>' +
+                         '<td>' +
+                         job[i].job_title +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_name +
+                         '</td>' +
+                         '<td>' +
+                         job[i].salary +
+                         '</td>' +
+                         '<td>' +
+                         job[i].job_description +
+                         '</td>' +
+                         '<td>' +
+                         job[i].experience +
+                         '</td>' +
+                         '<td>' +
+                         job[i].degree +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_address +
+                         '</td>' +
+                         '</tr>')
+                     }
+                     $("#jumpNumTxt").val(pn);
+                     $("#cur_page").text(pn);
+                     $("#page_total").text(abc.page.num_pages);
+                     $("#job_total").text(abc.total_count);
+                 }
+             });
+        });
+        {# 上一页、下一页、跳转、首页、尾页的函数   #}
+        function jump_page(pn) {
+            console.log(city,key,'1');
+            $.ajax({
+                 type: "get",//请求方式get/post
+                 url: "{% url 'show:menu' %}",//请求地址
+                 data: {"city":city,"key":key,"salary":salary,"exp":exp,"pn":pn,"isasy":1,"sk":sk,"sc":sc},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     var job = abc.page["objects"];
+                     $("#show_job").empty();
+                     page_total = parseInt(abc.page.num_pages);
+                     for(var i=0; i<job.length;i++){
+                         $("#show_job").append('<tr>' +
+                         '<td>' +
+                         job[i].job_title +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_name +
+                         '</td>' +
+                         '<td>' +
+                         job[i].salary +
+                         '</td>' +
+                         '<td>' +
+                         job[i].job_description +
+                         '</td>' +
+                         '<td>' +
+                         job[i].experience +
+                         '</td>' +
+                         '<td>' +
+                         job[i].degree +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_address +
+                         '</td>' +
+                         '</tr>')
+                     }
+                     $("#jumpNumTxt").val(pn);
+                     $("#cur_page").text(pn);
+                     $("#page_total").text(abc.page.num_pages);
+                     $("#job_total").text(abc.total_count);
+                 }
+             });
+        }
+        $("#f_page").click(function () {
+            pn = 1;
+            jump_page(pn);
+            $("#jumpNumTxt").val(pn);
+            $("#cur_page").val(pn);
+        });
+        $("#l_page").click(function () {
+            pn = page_total;
+            jump_page(pn);
+            $("#jumpNumTxt").val(pn);
+            $("#cur_page").val(pn);
+        });
+        $("#p_page").click(function () {
+            if (pn>1){
+                pn = parseInt(pn) - 1;
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }
+        });
+        $("#n_page").click(function () {
+            if (pn<page_total){
+                pn = parseInt(pn) + 1;
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }
+        });
+        $("#jump_page").click(function () {
+            if ($("#jumpNumTxt").val()>page_total){
+                $("#jumpNumTxt").val(page_total);
+                pn = $("#jumpNumTxt").val();
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }else if ($("#jumpNumTxt").val()<1){
+                $("#jumpNumTxt").val('1');
+                pn = $("#jumpNumTxt").val();
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }else {
+                pn = $("#jumpNumTxt").val();
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }
+        });
+    </script>
 </body>
 </html>

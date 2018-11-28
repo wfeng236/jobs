@@ -37,7 +37,22 @@ def paginator(object_list, per_page, current_page):
         'has_prev'  : contacts.has_previous(),
         'next_page' : contacts.next_page_number() if contacts.has_next() else 0,
         'prev_page' : contacts.previous_page_number() if contacts.has_previous() else 0,
-        'objects'   : contacts.object_list,
+        'objects'   : list(contacts.object_list),
         'page_list' : list(contacts.paginator.page_range),
     }
+
+
+class MyPaginator(Paginator):
+    def pageDict(self, cur_page):
+        contacts = self.page(cur_page)
+        return {
+            "number": contacts.number,
+            "num_pages": contacts.paginator.num_pages,
+            'has_next': contacts.has_next(),
+            'has_prev': contacts.has_previous(),
+            'next_page': contacts.next_page_number() if contacts.has_next() else 0,
+            'prev_page': contacts.previous_page_number() if contacts.has_previous() else 0,
+            'objects': list(contacts.object_list),
+            'page_list': list(contacts.paginator.page_range),
+        }
 
