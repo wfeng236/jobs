@@ -121,7 +121,7 @@
             console.log(sf,sd,'ceishi');
             $.ajax({
                  type: "get",//请求方式get/post
-                 url: "{% url 'show:menu' %}",//请求地址
+                 url: "{% url 'show:sort' %}",//请求地址
                  data: {"sf":sf,"sd":sd,'isasy':'1'},//请求参数
                  dataType: "json",//声明当前的响应为json格式，则success中的abc就
                  //是解析后的js对象
@@ -170,13 +170,13 @@
                 salary = $(this).attr("class");
                 sd = salary;
                 sort_func();
-                $(this).text("月薪↓");
+                $(this).text("月薪↑");
             }else if(salary=='1'){
                 $(this).attr("class","2");
                 salary = $(this).attr("class");
                 sd = salary;
                 sort_func();
-                $(this).text("月薪↑");
+                $(this).text("月薪↓");
             }else if(salary=='2'){
                 $(this).attr("class","0");
                 salary = $(this).attr("class");
@@ -196,13 +196,13 @@
                 exp = $(this).attr("class");
                 sd = exp;
                 sort_func();
-                $(this).text("经验要求↓");
+                $(this).text("经验要求↑");
             }else if(exp=='1'){
                 $(this).attr("class","2");
                 exp = $(this).attr("class");
                 sd = exp;
                 sort_func();
-                $(this).text("经验要求↑");
+                $(this).text("经验要求↓");
             }else if(exp=='2'){
                 $(this).attr("class","0");
                 exp = $(this).attr("class");
