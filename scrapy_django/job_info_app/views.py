@@ -149,8 +149,8 @@ def getDatas(city, key, login_user=''):
     hbasedatas = []
     # 登录了，全查, 从hbase 获取数据
     if login_user:
-        hdatas = getDatasFromHbase(city, key)
-        hbasedatas = [{k.replace('show:', ''): v for k, v in d.items()} for d in hdatas if hdatas]
+        hbasedatas = getDatasFromHbase(city, key)
+        # hbasedatas = [{k.replace('show:', ''): v for k, v in d.items()} for d in hbasedatas if hbasedatas]
 
     print('mysqldatas: ', datas)
     print('hbasedatas: ', hbasedatas)
@@ -169,8 +169,7 @@ def getDatasFromMysql(city, key):
     :param key:
     :return:
     """
-    return Hoteljob.objects.filter(city__icontains=city, job_type__icontains=key).\
-        values('job_title', 'company_name', 'salary', 'job_description', 'experience', 'degree', 'company_address')
+    return Hoteljob.objects.filter(city__icontains=city, job_type__icontains=key).values('job_title', 'company_name', 'salary', 'job_description', 'experience', 'degree', 'company_address', 'format_salary', 'format_experience')
 
 
 def getDatasFromHbase(city, key):
@@ -194,8 +193,11 @@ def getDatasFromHbase(city, key):
     #     restr = city
     # else:
     #     restr = key
-    return [{k1.decode('utf-8'): v1.decode('utf-8') for k1, v1 in v.items()} for k, v in
+    try:
+        return [{k1.decode('utf-8').replace('show:', ''): v1.decode('utf-8') for k1, v1 in v.items()} for k, v in
             table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')" % (city, key), columns=('show',))]
+    except:
+        return []
 
 
 def suggest_ajax(request):

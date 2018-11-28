@@ -12,5 +12,7 @@ class Hoteljob(models.Model):
     experience = models.CharField(max_length=100)
     degree = models.CharField(max_length=100)
     company_address = models.CharField(max_length=200)
+    format_salary = models.CharField(max_length=200)
+    format_experience = models.CharField(max_length=200)
     class Meta:
         db_table = 't_hoteljob'
