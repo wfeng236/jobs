@@ -156,32 +156,38 @@ def ajax_yzm(request):
 
 #登录接收页面
 def login_logic(request):
-    #获取用户名
-    username=request.POST.get("username")
-    #获取用户密码
-    password=request.POST.get("password")
-    #获取用户对象
-    database_user = User.objects.filter(username=username)
-    #如果对象存在
-    if database_user:
-        #拿到对象盐值加密的密码
-        database_password = database_user[0].password
-        #拿到盐
-        salt = database_user[0].salt
-        #将新输入的密码盐值重新哈希加密
-        password1 = utils.hashCode(password,salt=salt)
-        password_1 = password1
-    print(username,password)
-    #获取真实的验证码
-    realcode=request.session.get("code")
-    #2.获取用户输入码
-    usercode=request.POST.get("usercode")
-    with transaction.atomic():
-        user = User.objects.filter(username=username,password=password_1)
-        if realcode.lower() == usercode.lower() and user:
-            # 将用户名存入session
-            request.session['login_user'] = username
-            return redirect("show:main:page")
-        else:
-            return redirect("user:login:page")
+    try:
+        #获取用户名
+        username=request.POST.get("username")
+        #获取用户密码
+        password=request.POST.get("password")
+        #获取用户对象
+        database_user = User.objects.filter(username=username)
+        print(username,password)
+        #获取真实的验证码
+        realcode=request.session.get("code")
+        #2.获取用户输入码
+        usercode=request.POST.get("usercode")
+        with transaction.atomic():
+            # 如果对象存在
+            if database_user:
+                # 拿到对象盐值加密的密码
+                database_password = database_user[0].password
+                # 拿到盐
+                salt = database_user[0].salt
+                # 将新输入的密码盐值重新哈希加密
+                password_1 = utils.hashCode(password, salt=salt)
+                user = User.objects.filter(username=username,password=password_1)
+            if realcode.lower() == usercode.lower():
+                return HttpResponse('1')
+            return HttpResponse('0')
+            if user:
+                # 将用户名存入session
+                request.session['login_user'] = username
+                return HttpResponse('2')
+            return HttpResponse('3')
+    except:
+        traceback.print_exc()
+        #登录失败重新回到注册页面
+        return redirect("user:login:page")
 
