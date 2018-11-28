@@ -130,6 +130,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 # 会话周期
 # SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 # 指定发送邮件的后端模块，大多数情况下照抄
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # 指定发送方的smtp服务器地址，建议使用新浪家的
@@ -154,3 +155,4 @@ CACHES = {
     }
 }
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
