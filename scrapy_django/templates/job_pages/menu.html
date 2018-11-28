@@ -56,6 +56,18 @@
 							<th>公司地点</th>
 						</tr>
                     <tbody id="show_job">
+                    {% for foo in page.objects %}
+                        <tr>
+                            <td>{{ foo.job_title }}</td>
+                            <td>{{ foo.company_name }}</td>
+                            <td>{{ foo.salary }}</td>
+                            <td>{{ foo.job_description }}</td>
+                            <td>{{ foo.exp }}</td>
+                            <td>{{ foo.degree }}</td>
+                            <td>{{ foo.company_address }}</td>
+                        </tr>
+                    {% endfor %}
+
 
                     </tbody>
 					</table>
@@ -63,10 +75,10 @@
 				<div class="ui_tb_h30">
 					<div class="ui_flt" style="height: 30px; line-height: 30px;">
 						共有
-						<span id="job_total" class="ui_txt_bold04">90</span>
+						<span id="job_total" class="ui_txt_bold04">{{ total_count }}</span>
 						条记录，当前第
 						<span class="ui_txt_bold04" id="cur_page">1</span>/
-                        <span id="page_total" class="ui_txt_bold04"></span>
+                        <span id="page_total" class="ui_txt_bold04">{{ page.num_pages }}</span>
 						页
 					</div>
 					<div class="ui_frt">
@@ -85,16 +97,24 @@
 			</div>
 		</div>
 	</form>
+    <div id="hide_info_city" class="{{ params.city }}" style="display: none">
+    </div>
+    <div id="hide_info_key" class="{{ params.key }}" style="display: none">
+    </div>
     <script type="text/javascript">
         var csrftoken = "{{ csrf_token }}";
         sc = "";
         sk = "";
-        city = "";
-        key = "";
+        city_dict = {'北京':'1','上海':'2','广州':'3','深圳':'4',}
+        key_dict = {'Web':'1','爬虫':'2','大数据':'3','AI':'4',}
+        city = city_dict[$("#hide_info_city").attr('class')];
+        key = key_dict[$("#hide_info_key").attr('class')];
+        console.log(city,key);
         salary = "";
         exp = "";
         pn = 1;
-        page_total = "";
+        page_total = {{ page.num_pages }};
+        console.log(page_total);
         {#$("#page_total").text("{{  }}")#}
         {#$("#job_total").text("{{  }}")#}
         {#suggest的函数#}
@@ -199,6 +219,7 @@
         });
         {# 上一页、下一页、跳转、首页、尾页的函数   #}
         function jump_page(pn) {
+            console.log(city,key,'1');
             $.ajax({
                  type: "get",//请求方式get/post
                  url: "{% url 'show:menu' %}",//请求地址
@@ -208,7 +229,7 @@
                  success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
                      var job = abc.page["objects"];
                      $("#show_job").empty();
-                     page_total = parseInt(abc.page.num_pages)-1;
+                     page_total = parseInt(abc.page.num_pages);
                      for(var i=0; i<job.length;i++){
                          $("#show_job").append('<tr>' +
                          '<td>' +
@@ -262,10 +283,12 @@
             }
         });
         $("#n_page").click(function () {
-            pn = parseInt(pn) + 1;
-            jump_page(pn);
-            $("#jumpNumTxt").val(pn);
-            $("#cur_page").val(pn)
+            if (pn<page_total){
+                pn = parseInt(pn) + 1;
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
+            }
         });
         $("#jump_page").click(function () {
             if ($("#jumpNumTxt").val()>page_total){
@@ -280,6 +303,11 @@
                 jump_page(pn);
                 $("#jumpNumTxt").val(pn);
                 $("#cur_page").val(pn)
+            }else {
+                pn = $("#jumpNumTxt").val();
+                jump_page(pn);
+                $("#jumpNumTxt").val(pn);
+                $("#cur_page").val(pn)
             }
         });
         function sort_func(field,statu) {
@@ -288,40 +316,41 @@
             $.ajax({
                  type: "get",//请求方式get/post
                  url: "{% url 'show:menu' %}",//请求地址
-                 data: {"sf":field,"sd":statu},//请求参数
+                 data: {"sf":field,"sd":statu,'isasy':'1'},//请求参数
                  dataType: "json",//声明当前的响应为json格式，则success中的abc就
                  //是解析后的js对象
                  success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
                      console.log("ok");
-                     {#var job = abc.page["objects"];#}
-                     {#$("#show_job").empty();#}
-                     {#page_total = parseInt(abc.page.num_pages)-1;#}
-                     {#for(var i=0; i<job.length;i++){#}
-                     {#    $("#show_job").append('<tr>' +#}
-                     {#    '<td>' +#}
-                     {#    job[i].job_title +#}
-                     {#    '</td>' +#}
-                     {#    '<td>' +#}
-                     {#    job[i].company_name +#}
-                     {#    '</td>' +#}
-                     {#    '<td>' +#}
-                     {#    job[i].salary +#}
-                     {#    '</td>' +#}
-                     {#    '<td>' +#}
-                     {#    job[i].job_description +#}
-                     {#    '</td>' +#}
-                     {#    '<td>' +#}
-                     {#    job[i].experience +#}
-                     {#    '</td>' +#}
-                     {#    '<td>' +#}
-                     {#    job[i].degree +#}
-                     {#    '</td>' +#}
-                     {#    '<td>' +#}
-                     {#    job[i].company_address +#}
-                     {#    '</td>' +#}
-                     {#    '</tr>')#}
+                     var job = abc.page["objects"];
+                     $("#show_job").empty();
+                     page_total = parseInt(abc.page.num_pages);
+                     for(var i=0; i<job.length;i++){
+                         $("#show_job").append('<tr>' +
+                         '<td>' +
+                         job[i].job_title +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_name +
+                         '</td>' +
+                         '<td>' +
+                         job[i].salary +
+                         '</td>' +
+                         '<td>' +
+                         job[i].job_description +
+                         '</td>' +
+                         '<td>' +
+                         job[i].experience +
+                         '</td>' +
+                         '<td>' +
+                         job[i].degree +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_address +
+                         '</td>' +
+                         '</tr>')
                  }
-             });
+                 }
+            });
         }
         $("#salary").click(function () {
             salary = $(this).attr("class");
