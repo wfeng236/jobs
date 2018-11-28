@@ -129,3 +129,15 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 # 会话周期
 # SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+# 指定发送邮件的后端模块，大多数情况下照抄
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# 指定发送方的smtp服务器地址，建议使用新浪家的
+EMAIL_HOST = 'smtp.sina.com'
+# smtp服务端口，默认为25；
+EMAIL_PORT = 25
+# 你在发送服务器的用户名；
+EMAIL_HOST_USER = 'niuniu837365144@sina.com'
+# 对应用户的密码
+EMAIL_HOST_PASSWORD = 'niu521'
+# EMAIL_USE_TLS = False # 这里是 False
+# EMAIL_FROM = "niuniu837365144@sina.com"  # 你的邮箱账号

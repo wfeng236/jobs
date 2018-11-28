@@ -18,9 +18,9 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('main/', include([
+    path('main/', include(([
         path('page/', views.main_page, name='page'),
-    ]), name='main'),
+    ],'main'))),
     path('introduce/', views.introduce_page,name='introduce'),
     path('menu/', views.menu_page,name='menu'),
 ]

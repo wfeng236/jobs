@@ -135,12 +135,15 @@ h1 {
 	text-align:left;
 	outline:none;
 	font-size:18px;
-	background:url(../images/person.png) no-repeat 440px 10px;
+
 	margin-top:4%;
 	font-weight: 300;
 	font-family: 'Muli', sans-serif;
 	/*-- W3Layouts --*/
 	border-radius: 4px;
+}
+.content1 input[name="username"] {
+	background: url(../images/person.png) no-repeat 440px 10px;
 }
 .content1 input[type="password"] {
 	padding:10px 40px 10px 10px;

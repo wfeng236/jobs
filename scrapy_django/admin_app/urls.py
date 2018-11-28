@@ -18,11 +18,28 @@ from django.urls import path, include
 from . import views
 urlpatterns = [
     path('register/', include(([
+        #注册跳转路径
         path('page/',views.register_page, name='page'),
+        #异步验证用户名路径
         path('ajax_username/',views.ajax_username, name='ajax_username'),
+        #异步验证用户名路径
+        path('ajax_phone/',views.ajax_phone, name='ajax_phone'),
+        #异步验证邮箱路径
+        path('ajax_emailyz/',views.ajax_emailyz,name='ajax_emailyz'),
+        #邮箱确认路径
+        path('emailyz/',views.register_emailyz,name='emailyz'),
+        #注册接收路径
+        path('logic/',views.register_logic,name='logic')
     ],'register'))),
 
     path('login/', include(([
+        #登录跳转路径
         path('page/',views.login_page, name='page'),
+        #生成验证码路径
+        path('capshow/',views.get_captcha,name='capshow'),
+        #异步验证验证码路径
+        path('ajax_yzm/',views.ajax_yzm,name='ajax_yzm'),
+        #登录接收路径
+        path('logic/',views.login_logic,name='logic')
     ],'login'))),
 ]

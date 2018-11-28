@@ -1,6 +1,10 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 
 # Create your views here.
+from job_info_app.models import Hoteljob
+from job_info_app.paging import paginator
+import happybase as hb
 
 code2city = {
     '1': '北京',
@@ -10,7 +14,7 @@ code2city = {
 }
 
 code2job = {
-    '1': 'Python Web',
+    '1': 'Web',
     '2': '爬虫',
     '3': '大数据',
     '4': 'AI',
@@ -29,37 +33,101 @@ def menu_page(request):
     :return:
     """
     # 1.获取请求参数
-    city = code2city.get(request.GET.get('city'))
-    key = code2job.get(request.GET.get('key'))
-    pn = request.GET.get('pn')
+    # 城市
+    city = code2city.get(request.GET.get('city') or '1')
+    # 职业
+    key = code2job.get(request.GET.get('key') or '1')
+    # 页号
+    pn = int(request.GET.get('pn') or 1)
+    # 搜索类型
     sk = request.GET.get('sk')
+    # 搜索内容
     sc = request.GET.get('sc')
+    # 根据薪水排序
     sa = request.GET.get('sa')
+    # 根据经验排序
     exp = request.GET.get('exp')
+    # 是否是异步请求
     isasy = request.GET.get('isasy')
     print('params: ', city, key, pn, sk, sc, sa, exp, isasy)
 
+    # request.session['sortdict'] = {'sa': '', 'exp': '',}
+    login_state = request.session.get('login_state')
+    # 如果没有登录的情况下想访问10页后的内容，不让访问
+    # if pn>10 and not request.session.get('login_state'):
+    #     return JsonResponse({'result': 0, 'msg': '请登录后再访问!!!'})
     # 2.查询数据
+    datas = getDatas(city, key, pn, sk, sc, sa, exp)
 
+    # 3. 分页 封装数据 字典格式
+    page = paginator(datas, 10, pn)
 
-    # 3. 封装数据 字典格式
-
+    resp = {
+        'result': 1,
+        'page': page,
+        'total_count': len(datas),
+    }
+    print(resp)
 
     # 4. 响应
-    return render(request, 'job_pages/menu.html')
+    if isasy:
+        return JsonResponse(resp)
+    else:
+        return render(request, 'job_pages/menu.html', resp)
 
-def getDatas(city, key='', pn='', sk='', sc='', sa='', exp='', isasy=False):
+def getDatas(city, key, pn=1, sk='', sc='', sa='', exp=''):
     """"""
+
+    # sk=='1'('2') 表示搜索类型为城市(职位)，搜索内容为sc
+    if sk=='1':
+        city = sc
+    elif sk=='2':
+        key = sc
+
     # pn<=10, 从mysql获取数据
+    if pn <= 10:
+        alldatas = getDatasFromMysql(city, key)
 
+    else:
     # pn>10, 从hbase 获取数据
+        alldatas = getDatasFromHbase(city, key)
+
+    return alldatas
 
 
-def getDatasFromMysql():
-    """"""
+def getDatasFromMysql(city, key):
+    """
+    从mysql中查询数据
+    :param city:
+    :param key:
+    :return:
+    """
+    alldatas = Hoteljob.objects.filter(city__icontains=city, job_title__icontains=key).values('job_title', 'company_name', 'salary', 'job_description', 'experience', 'degree', 'company_address')
+    print('getDatasFromMysql: ', alldatas)
+    return alldatas
 
 
 
+def getDatasFromHbase(city, key):
+    """
+    从hbase中查询数据
+    :param city:
+    :param key:
+    :return:
+    """
+    # 'wnm1'是域名，需要在计算机中配置
+    # 获取连接
+    conn = hb.Connection(host='wnm1', port=9090)
+    # 获取表对象
+    table = conn.table('jobs:t_hoteljob')
+    # 查询数据
+    restr = ':'.join((city, key))
+    print('restr: ', restr)
+    for key, value in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*')"%restr):
+        print(key.decode('utf-8'),value)  # key= rowkey   value=data  返回的二进制字符串
 
-def getDatasFromHbase():
-    """"""
+
+
+    return []
+
+
