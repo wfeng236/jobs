@@ -10,7 +10,7 @@ from django.shortcuts import render, HttpResponse, redirect
 from admin_app.captcha.image import ImageCaptcha
 from admin_app.models import User
 from django.core.mail import send_mail, EmailMultiAlternatives
-from user_app import utils
+from admin_app import utils
 
 # Create your views here.
 
