@@ -9,6 +9,10 @@
 @desc:
 '''
 from pprint import pprint
+
+import time
+from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
 from job_info_app.my_connect import getMyConn
@@ -36,7 +40,8 @@ class VeryfyAccessMiddleware(MiddlewareMixin):
         # pprint(request.META['HTTP_REFERER'])
         # pprint(request.META['HTTP_USER_AGENT'])
         if not self.isBrowser(request.META['HTTP_USER_AGENT']):
-            return
+            time.sleep(300)
+            return JsonResponse({'msg': '网络不佳~~~'})
 
         curPath = request.path
         print(curPath)
@@ -48,7 +53,8 @@ class VeryfyAccessMiddleware(MiddlewareMixin):
             banName = 'ban:%s'%ip
             if r.get(banName):
                 # 被封了
-                return
+                print(banName, '123456')
+                return JsonResponse({'msg': '请求次数过多！'})
 
             name = 'ip:%s'%ip
             count = r.get(name)
@@ -56,11 +62,11 @@ class VeryfyAccessMiddleware(MiddlewareMixin):
                 r.set(name, 1)
                 # 设置有效时间 60秒
                 r.expire(name, 60)
-            elif count > 60:
+            elif int(count) > 60:
                 # 一分钟访问超过 60次, 封 ip一天
                 r.set(banName, 1)
                 r.expire(banName, 24*60*60)
-
+                return JsonResponse({'msg': '出错了！'})
             else:
                 r.set(name, int(count) + 1)
 
