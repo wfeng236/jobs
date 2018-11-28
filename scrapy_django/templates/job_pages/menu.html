@@ -14,6 +14,18 @@
 <script type="text/javascript">
 </script>
 <style>
+    .title{
+        width: 100px;
+    }
+    .title1{
+        width: 50px;
+    }
+    #salary{
+        width: 50px;
+    }
+        #exp{
+        width: 50px;
+    }
 </style>
 </head>
 <body>
@@ -47,13 +59,13 @@
 				<div class="ui_tb">
 					<table class="table" cellspacing="0" cellpadding="0" width="100%" align="center" border="0">
 						<tr>
-							<th>职位</th>
-							<th>公司</th>
+							<th class="title">职位</th>
+							<th class="title">公司</th>
 							<th id="salary" class="0" style="cursor: pointer">月薪</th>
-							<th>任职要求</th>
+							<th class="title">任职要求</th>
 							<th id="exp" class="0"  style="cursor: pointer">经验要求</th>
-							<th>学历要求</th>
-							<th>公司地点</th>
+							<th class="title1">学历要求</th>
+							<th class="title">公司地点</th>
 						</tr>
                     <tbody id="show_job">
                     {% for foo in page.objects %}
@@ -265,7 +277,10 @@
         {#   搜索框的函数 #}
         $("#search_btn").click(function () {
             sk  = $("#fyXq option:selected").val();
-            sc = $("#fyZldz").val();
+            sc_dict = {'shenzhen':'深圳','shanghai':'上海','beijing':'北京','guangzhou':'广州','dashuju':'大数据','pachong':'爬虫',
+            '深圳':'深圳','上海':'上海','北京':'北京','广州':'广州','大数据':'大数据','爬虫':'爬虫','AI':'AI','ai':'ai','python web':'pythonweb',
+            };
+            sc = sc_dict[$("#fyZldz").val()];
             city = '';
             key = '';
             sf = '';
