@@ -87,5 +87,5 @@ if __name__ == '__main__':
 
     # MyConnect
     print(getMyConn())
-    print(my_conn)
     print(getMyConn())
+

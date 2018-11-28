@@ -39,6 +39,8 @@ def sortData(data, field, direction=''):
     :return:
     '''
     print('sortData: ', field, direction)
+    if field == direction == '0':
+        return data
     return sorted(data, key=lambda x: mycmp(itemgetter(fieldDict[field])(x)), reverse=(direction=='2'))
 
 

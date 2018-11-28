@@ -91,6 +91,8 @@ def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
     datas = getDatas(city, key, login_user)
     request.session['datas'] = datas
     request.session['pn'] = pn
+    sf, sd = request.session.get('sort_rule', ('0', '0'))
+    datas = sortData(datas, sf, sd)
 
     # 3. 分页 封装数据 字典格式
     resp = pages(datas, pn)
@@ -127,9 +129,11 @@ def dataSort(request):
     print('dataSort: ', sf, sd)
     datas = request.session.get('datas')
     pn = request.session.get('pn', 1)
-    if sf == sd == '0':
-        return JsonResponse(pages(datas, pn))
+    request.session['sort_rule'] = (sf, sd)
+
     return JsonResponse(pages(sortData(datas, sf, sd), pn))
+
+# def getSortedData(sf, sd, pn):
 
 
 def getDatas(city, key, login_user=''):
