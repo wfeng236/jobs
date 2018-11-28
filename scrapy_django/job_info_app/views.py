@@ -75,11 +75,6 @@ def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
     :param login_user:
     :return:
     """
-    # 如果没有登录的情况下想访问10页后的内容，不让访问
-    # if pn>10 and not request.session.get('login_state'):
-    #     return JsonResponse({'result': 0, 'msg': '请登录后再访问!!!'})
-
-    # 2.查询数据
     # sk=='1'('2') 表示搜索类型为城市(职位)，搜索内容为sc
     if sk == '1':
         city = sc
@@ -87,18 +82,37 @@ def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
     elif sk == '2':
         key = sc
         city = ''
+    # 如果没有登录的情况下想访问10页后的内容，不让访问
+    # if pn>10 and not request.session.get('login_state'):
+    #     return JsonResponse({'result': 0, 'msg': '请登录后再访问!!!'})
 
-    datas = getDatas(city, key, login_user)
-    request.session['datas'] = datas
-    request.session['pn'] = pn
+    # 2.查询数据
     sf, sd = request.session.get('sort_rule', ('0', '0'))
-    datas = sortData(datas, sf, sd)
+    pageName = '%s:%s:%s:%s'%(city, key, sf, sd)
+    # 获取缓存数据
+    pages = request.session.get(pageName)
+    # 如果没有缓存
+    if not pages:
+
+        datas = getDatas(city, key, login_user)
+        request.session['datas'] = datas
+        request.session['pn'] = pn
+        sf, sd = request.session.get('sort_rule', ('0', '0'))
+        datas = sortData(datas, sf, sd)
 
     # 3. 分页 封装数据 字典格式
-    resp = pages(datas, pn)
+        pages = getPages(datas)
+        request.session[pageName] = pages
+        request.session['total_count'] = len(datas)
+
+
+    resp = {
+        'result': 1,
+        'page': pages.pageDict(pn),
+        'params': {'city': city, 'key': key},
+        'totalCount': request.session.get('total_count'),
+    }
     print(resp)
-    resp.update({'params': {'city': city, 'key': key}})
-    print(len(datas))
 
     # 4. 响应
     if isasy:
@@ -107,13 +121,9 @@ def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
         return render(request, 'job_pages/menu.html', resp)
 
 
-def pages(datas, pn):
-    page = MyPaginator(datas[:300], 10).pageDict(pn)
-    return {
-        'result': 1,
-        'page': page,
-        'total_count': len(datas),
-    }
+def getPages(datas):
+    pages = MyPaginator(datas[:300], 10)
+    return pages
 
 
 def dataSort(request):
@@ -131,9 +141,7 @@ def dataSort(request):
     pn = request.session.get('pn', 1)
     request.session['sort_rule'] = (sf, sd)
 
-    return JsonResponse(pages(sortData(datas, sf, sd), pn))
-
-# def getSortedData(sf, sd, pn):
+    return JsonResponse(getPages(sortData(datas, sf, sd)).pageDict(pn))
 
 
 def getDatas(city, key, login_user=''):
@@ -185,14 +193,6 @@ def getDatasFromHbase(city, key):
     # 获取表对象
     table = conn.table('jobs:t_hoteljob1')
     # 查询数据
-    # city = ''
-    # key = '大数据'
-    # if city and key:
-    #     restr = '.*'.join((city, key))
-    # elif city:
-    #     restr = city
-    # else:
-    #     restr = key
     try:
         return [{k1.decode('utf-8').replace('show:', ''): v1.decode('utf-8') for k1, v1 in v.items()} for k, v in
             table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')" % (city, key), columns=('show',))]

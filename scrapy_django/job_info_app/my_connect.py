@@ -32,6 +32,7 @@ def getMyConn():
         global my_conn
         return my_conn
     except:
+        print('new connect')
         return MyConnect()
 
 
