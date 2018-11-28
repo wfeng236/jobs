@@ -121,9 +121,10 @@ def dataSort(request):
     :return:
     """
     # 排序字段 1：salary 2：experience
-    sf = request.GET.get('sa') or '0'
+    sf = request.GET.get('sf') or '0'
     # 排序方向 1：asc 2：desc
-    sd = request.GET.get('exp') or '0'
+    sd = request.GET.get('sd') or '0'
+    print('dataSort: ', sf, sd)
     datas = request.session.get('datas')
     pn = request.session.get('pn', 1)
     if sf == sd == '0':
