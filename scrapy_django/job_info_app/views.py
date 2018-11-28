@@ -86,7 +86,7 @@ def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
         key = sc
         city = ''
 
-    datas = getDatas(city, key, login_user)[:300]
+    datas = getDatas(city, key, login_user)
     request.session['datas'] = datas
     request.session['pn'] = pn
 
@@ -104,7 +104,7 @@ def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
 
 
 def pages(datas, pn):
-    page = MyPaginator(datas, 10).pageDict(pn)
+    page = MyPaginator(datas[:300], 10).pageDict(pn)
     return {
         'result': 1,
         'page': page,

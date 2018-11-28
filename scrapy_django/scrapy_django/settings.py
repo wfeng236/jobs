@@ -78,7 +78,8 @@ WSGI_APPLICATION = 'scrapy_django.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # 连接类型
+        # 'ENGINE': 'django.db.backends.mysql',  # 连接类型
+        'ENGINE': 'my_pool',
         'NAME': 'scrapy_project',  # 数据库名称
         'USER': 'root',  # 用户名
         'PASSWORD': '123456',  # 密码
@@ -129,3 +130,14 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 # 会话周期
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache", #Redis缓存入口，其中使用DefaultClient操作缓存
+        "LOCATION": "redis://172.16.14.8:7000/0", #ip:port/db_index
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient" #操作缓存的对象
+        }
+    }
+}
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'

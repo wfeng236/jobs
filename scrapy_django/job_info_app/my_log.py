@@ -19,19 +19,43 @@ from job_info_app.my_utils import getHbaseConn
 class MyLog:
     def __init__(self,fun):
         self.fun=fun
+        self.setFuncDict()
         print('fname: ', fun.__name__)
-    def __call__(self, *args):
-        if self.fun.__name__ == 'deal_menu_page':
-            req, city, key, _, _, _, _, login_user = args
-            # pprint(req.META)
-            ip = req.META.get('REMOTE_ADDR')
-            print(ip)
-            if not login_user:
-                login_user = ip
-            login_city = get_city(ip)
-            # 哪个用户 在 哪个城市 什么时间 访问了 哪个城市 的 哪个职位
-            self.save2hbase(login_user, login_city, city, key)
-        return self.fun(*args)
+
+    def setFuncDict(self):
+        """
+        注册函数名以及对应的处理函数对象
+        :return:
+        """
+        self.funcDict = {
+            'deal_menu_page': self.logRecord,
+        }
+    def errorFuncName(self, *args, **kwargs):
+        """
+        错误信息
+        :return:
+        """
+        print('func name is not register')
+
+    def __call__(self, *args, **kwargs):
+        # 在运行函数之前做的一些工作
+        self.funcDict.get(self.fun.__name__, self.errorFuncName)(*args, **kwargs)
+        return self.fun(*args, **kwargs)
+
+    def logRecord(self, *args, **kwargs):
+        """
+        记录日志
+        :return:
+        """
+        req, city, key, _, _, _, _, login_user = args
+        # pprint(req.META)
+        ip = req.META.get('REMOTE_ADDR')
+        print(ip)
+        if not login_user:
+            login_user = ip
+        login_city = get_city(ip)
+        # 哪个用户 在 哪个城市 什么时间 访问了 哪个城市 的 哪个职位
+        self.save2hbase(login_user, login_city, city, key)
 
     def save2hbase(self, user, login_city, city, job):
         conn = getHbaseConn()
@@ -49,11 +73,12 @@ class MyLog:
             }
         )
 
+if __name__ == '__main__':
+    ''
+    @MyLog   # funA(funC)()
+    def funC(a):
+        print('C', a)
+    # funC('123')
 
-@MyLog   # funA(funC)()
-def funC(a):
-    print('C', a)
-# funC('123')
-
-# a = funC
-# print(a.__name__)
+    # a = funC
+    # print(a.__name__)
