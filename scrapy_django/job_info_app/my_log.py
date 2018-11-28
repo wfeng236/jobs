@@ -13,7 +13,8 @@ from datetime import datetime
 from pprint import pprint
 
 from job_info_app.get_city_of_ip import get_city
-from job_info_app.my_utils import getHbaseConn
+# from job_info_app.my_utils import getHbaseConn
+from job_info_app.my_connect import getMyConn
 
 
 class MyLog:
@@ -58,7 +59,8 @@ class MyLog:
         self.save2hbase(login_user, login_city, city, key)
 
     def save2hbase(self, user, login_city, city, job):
-        conn = getHbaseConn()
+        """"""
+        conn = getMyConn().getHbaseConn()
         # 获取表对象
         table = conn.table('jobs:t_logs')
         curtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -82,3 +84,8 @@ if __name__ == '__main__':
 
     # a = funC
     # print(a.__name__)
+
+    # MyConnect
+    print(getMyConn())
+    print(my_conn)
+    print(getMyConn())

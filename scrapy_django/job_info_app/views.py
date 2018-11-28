@@ -6,9 +6,11 @@ from django.shortcuts import render
 # Create your views here.
 from job_info_app.models import Hoteljob
 from job_info_app.my_log import MyLog
-from job_info_app.my_utils import sortData, getHbaseConn
-from job_info_app.paging import paginator, MyPaginator
+from job_info_app.my_utils import sortData
+from job_info_app.paging import MyPaginator
+from job_info_app.my_connect import getMyConn
 
+#
 code2city = {
     '1': '北京',
     '2': '上海',
@@ -175,7 +177,7 @@ def getDatasFromHbase(city, key):
     """
     # 'wnm1'是域名，需要在计算机中配置
     # 获取连接
-    conn = getHbaseConn()
+    conn = getMyConn().getHbaseConn()
     # 获取表对象
     table = conn.table('jobs:t_hoteljob1')
     # 查询数据
@@ -187,8 +189,6 @@ def getDatasFromHbase(city, key):
     #     restr = city
     # else:
     #     restr = key
-    # for k, v in table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*')"%(city, key)):
-    #     print(k.decode('utf-8'),v)  # key= rowkey   value=data  返回的二进制字符串
     return [{k1.decode('utf-8'): v1.decode('utf-8') for k1, v1 in v.items()} for k, v in
             table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')" % (city, key), columns=('show',))]
 

@@ -11,10 +11,6 @@
 import uuid
 from operator import itemgetter, attrgetter
 import functools
-import happybase as hb
-
-def getHbaseConn():
-    return hb.Connection(host='wnm1', port=9090)
 
 fieldDict = {
     '1': 'salary',
@@ -32,7 +28,7 @@ def mycmp(x):
     if '经验' in x and '年' in x:
         # 经验3-5年
         return x.replace('经验', '')
-    return x
+    return x.strip()
 
 def sortData(data, field, direction=''):
     '''
@@ -42,8 +38,8 @@ def sortData(data, field, direction=''):
     :param direction: 排序的方向 1：升序， 2：降序
     :return:
     '''
+    print('sortData: ', field, direction)
     return sorted(data, key=lambda x: mycmp(itemgetter(fieldDict[field])(x)), reverse=(direction=='2'))
-
 
 
 def cmp_desc(a, b):
