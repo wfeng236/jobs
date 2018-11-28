@@ -8,6 +8,7 @@
 @time: 2018/11/27 15:29
 @desc:
 '''
+import uuid
 from operator import itemgetter, attrgetter
 import functools
 import happybase as hb
@@ -123,5 +124,6 @@ if __name__ == '__main__':
     # a = {'salary': 100000}
     # print(itemgetter(fieldDict['1'])(a))
     # print(sorted(['1', '6', 'a', 'A', 'Z', 'd', '-', '+', '三', '年','-23', '-33']))
+    # print(str(uuid.uuid4()).replace('-', ''), type(uuid.uuid4()))
 
 

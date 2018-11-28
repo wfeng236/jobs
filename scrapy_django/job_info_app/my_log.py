@@ -39,7 +39,7 @@ class MyLog:
         table = conn.table('jobs:t_logs')
         curtime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         table.put(
-            row=uuid.uuid4(),
+            row=str(uuid.uuid4()).replace('-', ''),
             data={
                 'log:user': user,
                 'log:login_city': login_city,
