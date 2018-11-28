@@ -20,24 +20,26 @@
 <div class="log">
 	<div class="content1" style="width:400px;">
 		<h2>Login</h2>
-		<form action="{% url 'user:login:logic' %}" method="post" >
-            {% csrf_token %}
-			<input type="text" name="username" value="" placeholder='USERNAME'>
+		<form >
+			<input id='username' type="text" name="username" value="" placeholder='USERNAME'>
+            <img id="usernameimg"  alt="" style="height:30px;">
 {#            <img id='usernameimg' src="/static/images/ajax/ok.gif" alt="" style="width:25px;height:25px">#}
-			<input type="password" name="password" placeholder='password'>
+			<input id='password' type="password" name="password" placeholder='password'>
+            <img id="passwordimg" alt="" style="height:30px;">
             <br>
             <img id="num" src="{% url 'user:login:capshow' %}" style="width:200px;height:50px;margin-top:20px;"/>
             <br>
-            <input type="text" name="usercode" id="yzm" style="width:100px;margin-left:30px">
-            <a href="javascript:void(0);" onclick="refresh_cap()" style="color:green">换一张</a>
+            <input type="text" name="usercode" id="yzm" style="width:100px;margin-left:30px" maxlength="4">
+            <a href="javascript:void(0);" onclick="refresh_cap()" style="color:green" id="hyz">换一张</a>
             <img id="yzmtp" height="21px" style="vertical-align:middle" />
             <br>
             <span id="yzmwz" style="color:red"></span>
             <br>
 			<div class="button-row" style="margin-top: 20px">
-				<input type="submit" class="sign-in" value="Sign In" style="margin-left:30px">
+				<input id='submit' type="button" class="sign-in" value="Sign In" style="margin-left:30px">
 				<input type="reset" class="reset" value="Reset">
 				<div class="clear"></div>
+                <img id="submitimg"  alt="" style="height:50px;">
 			</div>
 		</form>
         <script type="text/javascript"></script>
@@ -79,12 +81,12 @@
                         result = xhr.responseText;
                         console.log(result);
                         if(result == '1'){
-{#                            console.log(2222)#}
+                            console.log(2222)
                             $("#yzmtp").attr('src','{% static '/images/ajax/ok.gif' %}');
                             $("#yzmwz").text('验证码输入正确');
                             $("#yzmwz").css('color','green')
                         }else{
-{#                            console.log(3333)#}
+                            console.log(3333)
                             $("#yzmtp").attr('src','{% static '/images/ajax/error.jpg' %}');
                             $("#yzmwz").text('验证码输入错误，请重新输入！');
                             refresh_cap()
@@ -97,7 +99,86 @@
                 num = document.getElementById('num')
                 num.src = '{% url 'user:login:capshow' %}?'+(new Date()).getTime()
             }
+            $("#hyz").click(function(){
+                $("#yzmtp").attr('src','');
+                $("#yzmwz").text('');
+            });
+            $("#yzm").keyup(function(){
+                $("#yzmtp").attr('src','');
+                $("#yzmwz").text('');
+            });
 
+{#            //判断用户名和密码是否为空#}
+{#            $("#password").blur(function(){#}
+{#                var username = $("#username").val();#}
+{#                var password = $("#password").val();#}
+{#                if (username.length == 0 || password.length == 0){#}
+{#                    alert("账号或密码不能为空！！！");#}
+{#                    $("#submit").attr('cursor','disabled')#}
+{#                }#}
+{#            })#}
+            $("#submit").click(function(){
+                var username = $("#username").val();
+                var password = $("#password").val();
+                var usercode = $("#yzm").val();
+                console.log(usercode)
+                var csrftoken ="{{ csrf_token }}";
+                if(usercode == 0){
+                    alert('验证码输入不能为空！！！');
+                }else{
+                    if(username.length != 0 && password.length != 0){
+                           $.ajaxSetup({headers:{"X-CSRFToken":csrftoken}});
+                           $("#submitimg").attr('src','/static/images/ajax/load.gif/');
+                           $.ajax({
+                               type:"post", //请求方式get/post
+                               url:"{% url 'user:login:logic' %}",
+                               data:{'username':username,'password':password,'usercode':usercode},
+                               dataType:"html",
+                               success:function(a){
+                                   var msg = a;
+                                   console.log(msg)
+                                   if(msg == '2' && msg == '1'){
+                                   location.href = '{% url 'show:main:page' %}'
+                                   }else if(msg == '0'){
+                                       $("#yzmtp").attr('src','{% static '/images/ajax/error.jpg' %}');
+                                       $("#yzmwz").text('验证码输入错误，请重新输入！');
+                                       $("#submitimg").attr('src','/static/images/ajax/error.jpg/');
+                                   }else if(msg == '3'){
+                                       alert('用户名或密码错误！！！')
+                                   }else if(msg == '1'){
+                                       alert('账号或密码错误！！！')
+                                       $("#submitimg").attr('src','/static/images/ajax/error.jpg/');
+                                       $("#usernameimg").attr('src','/static/images/ajax/error.jpg/');
+                                       $("#passwordimg").attr('src','/static/images/ajax/error.jpg/');
+                                   }
+                               }
+
+                })
+                    }else if(username.length == 0 || password.length == 0 ){
+                        alert('账号或密码不能为空！！！')
+                    }
+                }
+            });
+            $("#username").keyup(function(){
+                $("#usernameimg").attr('src','');
+                $("#passwordimg").attr('src','');
+                $("#submitimg").attr('src','');
+            });
+            $("#password").keyup(function(){
+                $("#usernameimg").attr('src','');
+                $("#passwordimg").attr('src','');
+                $("#submitimg").attr('src','');
+            });
+            $("#username").click(function(){
+                $("#usernameimg").attr('src','');
+                $("#passwordimg").attr('src','');
+                $("#submitimg").attr('src','');
+            });
+            $("#password").click(function(){
+                $("#usernameimg").attr('src','');
+                $("#passwordimg").attr('src','');
+                $("#submitimg").attr('src','');
+            })
         </script>
 	</div>
 
