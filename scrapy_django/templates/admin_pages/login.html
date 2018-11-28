@@ -1,4 +1,5 @@
 <!doctype html>
+{% load static %}
 <html>
 <head>
 <title>Home</title>
@@ -17,17 +18,87 @@
 <body>
 <h1>Login</h1>
 <div class="log">
-	<div class="content1">
+	<div class="content1" style="width:400px;">
 		<h2>Login</h2>
-		<form>
-			<input type="text" name="userid" value="USERNAME" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'USERNAME';}">
-			<input type="password" name="psw" value="PASSWORD" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'PASSWORD';}">
-			<div class="button-row">
-				<input type="submit" class="sign-in" value="Sign In">
+		<form action="{% url 'user:login:logic' %}" method="post" >
+            {% csrf_token %}
+			<input type="text" name="username" value="" placeholder='USERNAME'>
+{#            <img id='usernameimg' src="/static/images/ajax/ok.gif" alt="" style="width:25px;height:25px">#}
+			<input type="password" name="password" placeholder='password'>
+            <br>
+            <img id="num" src="{% url 'user:login:capshow' %}" style="width:200px;height:50px;margin-top:20px;"/>
+            <br>
+            <input type="text" name="usercode" id="yzm" style="width:100px;margin-left:30px">
+            <a href="javascript:void(0);" onclick="refresh_cap()" style="color:green">换一张</a>
+            <img id="yzmtp" height="21px" style="vertical-align:middle" />
+            <br>
+            <span id="yzmwz" style="color:red"></span>
+            <br>
+			<div class="button-row" style="margin-top: 20px">
+				<input type="submit" class="sign-in" value="Sign In" style="margin-left:30px">
 				<input type="reset" class="reset" value="Reset">
 				<div class="clear"></div>
 			</div>
 		</form>
+        <script type="text/javascript"></script>
+        <script src="/static/scripts/jquery/jquery-1.7.1.js"></script>
+        <script>
+            //异步验证验证码
+            $('#yzm').blur(function(){
+                //1.构建核心对象，xhr = 浏览器的内置对象
+                //webkit = chrome,safiri,ff,opera IE:ie
+                var xhr;
+                if(window.ActiveXObject){
+                    xhr = new ActiveXObject('Microsoft.XMLHTTP');
+                }else if(window.XMLHttpRequest){
+                    xhr = new XMLHttpRequest()
+                }
+                //2.初始化 post 请求 xhr请求方式 请求地址 请求参数
+                number = $(this).val();
+                console.log(number);
+                xhr.open("post",'{% url 'user:login:ajax_yzm' %}');
+                //3.在请求参数这是csrf 令牌(token)
+                var token = '{{ csrf_token }}';
+                xhr.setRequestHeader('X-CSRFToken',token);
+                //3.2 在请求头设置 请求参数的编码类型==key==value==key==value
+                xhr.setRequestHeader('content-type','application/x-www-form-urlencoded')
+                //3.3发送
+                xhr.send("usercode="+number);
+                $("#yzmtp").attr("src",'{% static 'images/ajax/load.gif' %}');
+                //4.接收响应内容
+                //响应完整回到浏览器
+                //xhr.onreadystatechange
+                //xhr.readyState 0==初创 2==发送 3==响应内容 4 == 响应开始 5==响应接收完毕
+                //xhr.responseText xhr会将响应内容放在responseText中
+                //xhr.status xhr 发送的请求的状态码 404 500 403 400 200
+                xhr.onreadystatechange=function(){
+                    console.log("11111")
+                    console.log(xhr.readyState)
+                    console.log(xhr.status == 200)
+                    if(xhr.readyState == 4 &&xhr.status == 200){
+                        result = xhr.responseText;
+                        console.log(result);
+                        if(result == '1'){
+{#                            console.log(2222)#}
+                            $("#yzmtp").attr('src','{% static '/images/ajax/ok.gif' %}');
+                            $("#yzmwz").text('验证码输入正确');
+                            $("#yzmwz").css('color','green')
+                        }else{
+{#                            console.log(3333)#}
+                            $("#yzmtp").attr('src','{% static '/images/ajax/error.jpg' %}');
+                            $("#yzmwz").text('验证码输入错误，请重新输入！');
+                            refresh_cap()
+                        }
+                    }
+                }
+            });
+            //点击换一张验证码
+            function refresh_cap(){
+                num = document.getElementById('num')
+                num.src = '{% url 'user:login:capshow' %}?'+(new Date()).getTime()
+            }
+
+        </script>
 	</div>
 
 	<div class="clear"></div>

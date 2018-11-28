@@ -17,10 +17,11 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('main/', include([
+    path('main/', include(([
         path('page/', views.main_page, name='page'),
         path('suggest/', views.suggest_ajax, name="suggest"),
-    ]), name='main'),
+    ],'main'))),
+
     path('introduce/', views.introduce_page,name='introduce'),
     path('menu/', views.menu_page,name='menu'),
     path('sort/', views.dataSort,name='sort'),

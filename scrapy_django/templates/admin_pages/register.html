@@ -16,14 +16,23 @@
 </head>
 <body>
 <h1>Register</h1>
-<div class="log">
+<div class="log" style="width:400px">
 	<div class="content2">
 		<h2>Register</h2>
-		<form>
-			<input type="text" name="userid" value="USERNAME" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'NAME AND SURNAME';}">
-			<input type="tel" name="usrtel" value="PHONE" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'PHONE';}">
-			<input type="email" name="email" value="EMAIL ADDRESS" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'EMAIL ADDRESS';}">
-			<input type="password" name="psw" value="PASSWORD" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'PASSWORD';}">
+		<form action="{% url 'user:register:logic' %}" method="post">
+            {% csrf_token %}
+			<input id='username' type="text" name="username" value="" placeholder='NAME AND SURNAME'>
+            <img id='usernameimg' alt="" style="width:25px;height:25px">
+			<input id="phone" type="tel" name="phone" value="" placeholder="PHONE" maxlength="11">
+            <img id="phoneimg" alt="" style="width:25px;height:25px">
+			<input id='email' type="email" name="email" value="" placeholder='EMAIL ADDRESS'>
+            <img id="emailimg" alt="" style="width:25px;height:25px">
+			<input id="password" type="password" name="password" value="" placeholder='PASSWORD'>
+            <img id="passwordimg" alt="" style="width:25px;height:25px">
+            <span id="passwordspan"></span>
+            <input id="password2" type="password" name="password2" value="" placeholder='Continue typing password'>
+            <img id="passwordimg2" alt="" style="width:25px;height:25px">
+            <h3 id="password2h3"></h3>
 			<input type="submit" class="register" value="Register">
 		</form>
 	</div>
@@ -32,6 +41,224 @@
 <div class="footer">
 	<p>Copyright &copy;  <a href="http://www.baizhiedu.com/" target="_blank" title="百知教育">百知教育</a></p>
 </div>
+<script src="/static/scripts/jquery/jquery-1.7.1.js"></script>
+<script>
+
+    //异步验证用户名是否存在
+    $("#username").blur(function(){
+        var username = $("#username").val();
+        console.log(username)
+        var csrftoken ="{{ csrf_token }}";
+        if(username.length != 0){
+               $.ajaxSetup({headers:{"X-CSRFToken":csrftoken}});
+               $("#usernameimg").attr('src','/static/images/ajax/load.gif/');
+               $.ajax({
+                   type:"post", //请求方式get/post
+                   url:"{% url 'user:register:ajax_username' %}",
+                   data:"username="+username,
+                   dataType:"html",
+                   success:function(a){
+                       var msg = a;
+                       console.log(msg)
+                       if(msg == "0"){
+                           $("#usernameimg").attr('src','/static/images/ajax/error.jpg/');
+                           alert('该用户名已存在，请重新输入！')
+                       }else if(msg == "1"){
+                           alert('该用户名可用！');
+                           $("#usernameimg").attr('src','/static/images/ajax/ok.gif/');
+                       }
+
+                   }
+
+                    })
+        }else{
+            alert('用户名不能为空！');
+            $("#usernameimg").attr('src','/static/images/ajax/error.jpg/');
+        }
+    });
+    //jquery验证手机号
+    $("#phone").blur(function(){
+        //获取手机输入框的值
+        var phone = $("#phone").val();
+        var csrftoken ="{{ csrf_token }}";
+        console.log(phone.length);
+        //判断输入的值是否为11位
+        if(phone.length <11 && phone.length != 0){
+            alert('手机号为11位，当前输入小于11位，请检查后重新输入！');
+            $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');
+        }else if(phone.length == 11){
+               $.ajaxSetup({headers:{"X-CSRFToken":csrftoken}});
+               $("#phoneimg").attr('src','/static/images/ajax/load.gif/');
+               $.ajax({
+                   type:"post", //请求方式get/post
+                   url:"{% url 'user:register:ajax_phone' %}",
+                   data:"phone="+phone,
+                   dataType:"html",
+                   success:function(a){
+                       var msg = a;
+                       console.log(msg)
+                       if(msg == "0"){
+                           $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');
+                           alert('该手机号已经注册，请重新输入！')
+                       }else if(msg == "1"){
+                           alert('该手机号可用！');
+                           $("#phoneimg").attr('src','/static/images/ajax/ok.gif/');
+                       }else if(msg == '2'){
+                           alert('手机号不能为空！！！')
+                           $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');
+                       }
+
+                   }
+
+                    })
+
+        }
+    });
+
+{#    $("#email").click(function(){#}
+{#        //获取手机输入框的值#}
+{#        var phone = $("#phone").val();#}
+{#        if(phone.length == 0){#}
+{#            alert('手机号不能为空！');#}
+{#            $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');#}
+{#        }#}
+{#    });#}
+    //异步发送邮箱验证码
+    $("#email").blur(function(){
+        var email = $("#email").val();
+        console.log(email)
+        if(email.length != 0){
+            if(!email.match(/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/)){
+            alert("格式不正确！请重新输入！");
+            $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
+            }else{
+                req = confirm('点击确定发送验证到邮箱，进入邮箱验证！');
+                if(req){
+                    $("#emailimg").attr('src','/static/images/ajax/load.gif/');
+                    $.ajax({
+                        type:"get",
+                        url:'{% url 'user:register:ajax_emailyz' %}',
+                        data:"email="+email,
+                        success:function(a){
+                            var msg = a;
+                            console.log(msg);
+                            if(msg == '1'){
+                                alert('邮箱发送成功，请进入邮箱验证！')
+                                $("#emailimg").attr('src','/static/images/ajax/ok.gif/');
+                            }else{
+                                alert('邮箱发送失败，请重新发送！')
+                                $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
+                            }
+                        }
+                    })
+                }
+            }
+        }
+    });
+
+    //键盘按下事件
+{#    $("#password").keypress(function () {#}
+{#        console.log(event.keyCode);#}
+{#        if (65 <= event.keyCode && event.keyCode <= 90){#}
+{#            $("#passwordspan").html("大写");#}
+{#            $("#passwordspan").css('color','red')#}
+{#            $("#passwordimg").css("display","none");#}
+{#        }else {#}
+{#            $("#J_tipUpperCaseBox").css("display","block");#}
+{#        }#}
+{#    });#}
+     $("#password").click(function(){
+         //获取email的值
+        var email = $("#email").val();
+        if(email.length == 0 ){
+        alert('邮箱不能为空，请重新输入！');
+        $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
+    }
+     });
+
+    //jquery验证第一次输入密码等级
+    $("#password").keyup(function(){
+            //获取第一次输入的密码
+            var password1 = $("#password").val();
+            //获取第二次输入的密码
+            var password2 = $("#password2").val();
+            if(password1 == password2 && password2 != 0){
+            $("#passwordimg2").attr('src','/static/images/ajax/ok.gif/');
+            $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
+            $("#password2h3").html('');
+            }
+            //数字组合
+            var number = /^[0-9]+$/;
+            //数字字母组合
+            var digital_alphabet = /^[A-Za-z0-9]+$/;
+            //数字字母字符组合
+            var password = $("#password").val();
+            if(password.length < 6){
+                $("#passwordspan").html('');
+                $("#passwordimg").attr('src','/static/images/ajax/error.jpg/');
+            }else if(password.length >=6 && number.test(password)){
+                $("#passwordimg").css("display","none");
+                $("#passwordspan").html('低级');
+                $("#passwordspan").css('color','red')
+            }else if(password.length >=6 && digital_alphabet.test(password)){
+                $("#passwordimg").css("display","none");
+                $("#passwordspan").html('中级');
+                $("#passwordspan").css('color','green')
+            }else if(password.length >=6 && /[a-z]/.test(password) && /[0-9]/.test(password) && /[-\.__+{}][,./]/.test(password) || /[A-Z]/.test(password) && /[0-9]/.test(password) && /[-\.__+{}][,./!@#$%^&*()_+]/.test(password)){
+                console.log("hello");
+                $("#passwordimg").css("display","none");
+                $("#passwordspan").html('高级');
+                $("#passwordspan").css('color','yellow')
+            }
+
+        });
+    //jquery验证密码规则
+    $("#password2").click(function(){
+            var number = /^[0-9]+$/;
+            var digital_alphabet = /^[A-Za-z0-9]+$/;
+            var password = $("#password").val();
+            if(password.length < 6){
+                $("#passwordimg").attr('src','/static/images/ajax/error.jpg/');
+                alert('密码长度必须大于6位！密码可以由数字字母字符组成，三种组合更加安全！')
+            }else if(password.length >=6 && number.test(password)){
+                alert('密码等级低级，建议使用字母数字组合更安全哦！');
+                $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
+            }else if(password.length >=6 && digital_alphabet.test(password)){
+                alert('密码等级中级，建议加入字符组合更安全哦！');
+                $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
+            }else if(password.length >=6 && /[a-z]/.test(password) && /[0-9]/.test(password) && /[-\.__+{}][,./]/.test(password) || /[A-Z]/.test(password) && /[0-9]/.test(password) && /[-\.__+{}][,./]/.test(password)){
+                alert('密码等级高级，安全性很好！');
+                $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
+            }
+
+        });
+
+    //jquery验证二次密码输入是否一致
+    $("#password2").blur(function(){
+        //获取第一次输入的密码
+        var password1 = $("#password").val();
+        //获取第二次输入的密码
+        var password2 = $("#password2").val();
+        if(password1 == password2 && password2 != 0){
+            $("#passwordimg2").attr('src','/static/images/ajax/ok.gif/');
+            $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
+            $("#password2h3").html('');
+        }else{
+            $("#passwordimg2").attr('src','/static/images/ajax/error.jpg/');
+            $("#password2h3").html('两次密码输入不一致，请重新输入！！！');
+            $("#password2h3").css('color',"red")
+        }
+    });
+    //二次密码框失去焦点事件
+{#    $("#password2").blur(function(){#}
+{#        //获取第二次输入的密码#}
+{#        var password2 = $("#password2").val();#}
+{#        if(password2.length == 0){#}
+{#            $("#passwordimg2").attr('src','/static/images/ajax/error.jpg/');#}
+{#        }#}
+{#    });#}
+
+</script>
 
 </body>
 </html>
