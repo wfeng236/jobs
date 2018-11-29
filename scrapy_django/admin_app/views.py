@@ -61,8 +61,10 @@ def ajax_emailyz(request):
 def register_emailyz(request):
     request.session['email_status']='1'
     username = request.GET.get('username')
+    flag = request.GET.get('flag')
+    print(flag)
+    return render(request,'admin_pages/emailyz.html',{'username':username,'flag':flag})
 
-    return render(request,'admin_pages/emailyz.html',{'username':username})
 
 #注册接收
 def register_logic(request):
