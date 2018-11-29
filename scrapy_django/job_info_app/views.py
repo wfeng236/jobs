@@ -1,3 +1,4 @@
+import json
 import re
 
 from django.http import JsonResponse
@@ -82,35 +83,38 @@ def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
     elif sk == '2':
         key = sc
         city = ''
-    # 如果没有登录的情况下想访问10页后的内容，不让访问
-    # if pn>10 and not request.session.get('login_state'):
-    #     return JsonResponse({'result': 0, 'msg': '请登录后再访问!!!'})
 
     # 2.查询数据
     sf, sd = request.session.get('sort_rule', ('0', '0'))
-    pageName = '%s:%s:%s:%s'%(city, key, sf, sd)
+    dataName = '%s:%s:%s:%s'%(city, key, sf, sd)
     # 获取缓存数据
-    pages = request.session.get(pageName)
+    # rdc = getMyConn().getRedisConn()
+    # # pagesBytes = b'' and rdc.get(dataName)
+    # byteDatas = rdc.get(dataName)
+    datas = getMyConn().getRedisData(dataName)
+    print('xxxxx',datas)
+    # pages = request.session.get(pageName)
     # 如果没有缓存
-    if not pages:
+    if not datas:
 
-        datas = getDatas(city, key, login_user)
-        request.session['datas'] = datas
-        request.session['pn'] = pn
-        sf, sd = request.session.get('sort_rule', ('0', '0'))
-        datas = sortData(datas, sf, sd)
+        # datas = getDatas(city, key, login_user)
+        # request.session['datas'] = datas
+
+        datas = sortData(getDatas(city, key, login_user), sf, sd)
+        # rdc.set(dataName, json.dumps(datas, default=None))
+        getMyConn().save2Redis(dataName, datas)
+        request.session['data_name'] = dataName
 
     # 3. 分页 封装数据 字典格式
-        pages = getPages(datas)
-        request.session[pageName] = pages
-        request.session['total_count'] = len(datas)
+    pages = MyPaginator(datas)
+    # request.session[pageName] = pages
+    # request.session['total_count'] = len(datas)
 
-
+    request.session['pn'] = pn
     resp = {
         'result': 1,
         'page': pages.pageDict(pn),
         'params': {'city': city, 'key': key},
-        'totalCount': request.session.get('total_count'),
     }
     print(resp)
 
@@ -120,10 +124,6 @@ def deal_menu_page(request, city, key, pn, sk, sc, isasy, login_user):
     else:
         return render(request, 'job_pages/menu.html', resp)
 
-
-def getPages(datas):
-    pages = MyPaginator(datas[:300], 10)
-    return pages
 
 
 def dataSort(request):
@@ -137,14 +137,21 @@ def dataSort(request):
     # 排序方向 1：asc 2：desc
     sd = request.GET.get('sd') or '0'
     print('dataSort: ', sf, sd)
-    datas = request.session.get('datas')
+    dataName = request.session.get('data_name')
+    # rdc = getMyConn().getRedisConn()
+    # datas = rdc.get(dataName)
+    datas = getMyConn().getRedisData(dataName)
     pn = request.session.get('pn', 1)
     request.session['sort_rule'] = (sf, sd)
+    resp = {
+        'result': 1,
+        'page': MyPaginator(sortData(datas, sf, sd)).pageDict(pn),
+    }
 
-    return JsonResponse(getPages(sortData(datas, sf, sd)).pageDict(pn))
+    return JsonResponse(resp)
 
 
-def getDatas(city, key, login_user=''):
+def getDatas(city, key, login_user='1'):
     """
     查询数据
     :param city:
@@ -195,25 +202,13 @@ def getDatasFromHbase(city, key):
     # 查询数据
     try:
         return [{k1.decode('utf-8').replace('show:', ''): v1.decode('utf-8') for k1, v1 in v.items()} for k, v in
-            table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')" % (city, key), columns=('show',))]
+            table.scan(filter="RowFilter(=,'regexstring:\.*%s.*%s.*/')" % (city, key), columns=('show',), limit=1)]
     except:
         return []
 
 
-def suggest_ajax(request):
-    """
-    ajax异步接收搜索框传来的数据，并进行正则匹配，将匹配的数据用json返回
-    :param request:
-    :return:
-    """
-    # 下拉表单的值：0：未选择；1：城市；2：职位；
-    area = request.POST.get("type")
-    # 搜索框中的内容
-    words = request.POST.get("message")
-    # 将搜索框中的字母转为小写
-    words = words.lower()
-    # 城市匹配数据库
-    suggests_city = """
+# 城市匹配数据库
+suggests_city = """
 北京
 上海
 广州
@@ -222,16 +217,16 @@ beijing
 shanghai
 guangzhou
 shenzhen"""
-    # 职位匹配数据库
-    suggests_key = """
+# 职位匹配数据库
+suggests_key = """
 ai
 python web
 大数据
 dashuju
 爬虫
 pachong"""
-    # 全部匹配
-    suggests = """
+# 全部匹配
+suggests = """
 北京
 上海
 广州
@@ -246,6 +241,20 @@ python web
 dashuju
 爬虫
 pachong"""
+
+def suggest_ajax(request):
+    """
+    ajax异步接收搜索框传来的数据，并进行正则匹配，将匹配的数据用json返回
+    :param request:
+    :return:
+    """
+    # 下拉表单的值：0：未选择；1：城市；2：职位；
+    area = request.POST.get("type")
+    # 搜索框中的内容
+    words = request.POST.get("message")
+    # 将搜索框中的字母转为小写
+    words = words.lower()
+
     # 匹配城市
     if area == "1":
         rule = re.compile('.*' + words + '.*', re.M)
