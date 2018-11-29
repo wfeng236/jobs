@@ -7,58 +7,61 @@
 <body>
     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
     <div id="main" style="width: 600px;height:400px;"></div>
+        <script src="/static/echarts/jquery-1.7.2.js"></script>
     <script src="/static/echarts/echarts.js"></script>
 <script src="/static/echarts/china.js"></script>
 <script>
 function randomValue() {
     return Math.round(Math.random()*1000);
 }
-var chart = echarts.init(document.getElementById('main'));
-chart.setOption({
-		
-	  tooltip: {},
-    series: [{
-		name:'数量',
-        type: 'map',
-        map: 'china',
-		 data:[
-                {name: '北京', value: randomValue()},
-                {name: '天津', value: randomValue()},
-                {name: '上海', value: randomValue()},
-                {name: '重庆', value: randomValue()},
-                {name: '河北', value: randomValue()},
-                {name: '河南', value: randomValue()},
-                {name: '云南', value: randomValue()},
-                {name: '辽宁', value: randomValue()},
-                {name: '黑龙江', value: randomValue()},
-                {name: '湖南', value: randomValue()},
-                {name: '安徽', value: randomValue()},
-                {name: '山东', value: randomValue()},
-                {name: '新疆', value: randomValue()},
-                {name: '江苏', value: randomValue()},
-                {name: '浙江', value: randomValue()},
-                {name: '江西', value: randomValue()},
-                {name: '湖北', value: randomValue()},
-                {name: '广西', value: randomValue()},
-                {name: '甘肃', value: randomValue()},
-                {name: '山西', value: randomValue()},
-                {name: '内蒙古', value: randomValue()},
-                {name: '陕西', value: randomValue()},
-                {name: '吉林', value: randomValue()},
-                {name: '福建', value: randomValue()},
-                {name: '贵州', value: randomValue()},
-                {name: '广东', value: randomValue()},
-                {name: '青海', value: randomValue()},
-                {name: '西藏', value: randomValue()},
-                {name: '四川', value: randomValue()},
-                {name: '宁夏', value: randomValue()},
-                {name: '海南', value: randomValue()},
-                {name: '台湾', value: randomValue()},
-                {name: '香港', value: randomValue()},
-                {name: '澳门', value: randomValue()}
-            ]
-    }]
-});
+   $.get('{% url "echarts:map_json" %}').done(function (data) {
+       var chart = echarts.init(document.getElementById('main'));
+       chart.setOption({
+
+           tooltip: {},
+           series: [{
+               name: '数量',
+               type: 'map',
+               map: 'china',
+               data: [
+                   {name: '北京', value: data.map_info['北京市']},
+                   {name: '天津', value: data.map_info['天津市']},
+                   {name: '上海', value: data.map_info['上海市']},
+                   {name: '重庆', value: data.map_info['重庆市省']},
+                   {name: '河北', value: data.map_info['河北省']},
+                   {name: '河南', value: data.map_info['河南省']},
+                   {name: '云南', value: data.map_info['云南省']},
+                   {name: '辽宁', value: data.map_info['辽宁省']},
+                   {name: '黑龙江', value: data.map_info['黑龙江省']},
+                   {name: '湖南', value: data.map_info['湖南省']},
+                   {name: '安徽', value: data.map_info['安徽省']},
+                   {name: '山东', value: data.map_info['山东省']},
+                   {name: '新疆', value: data.map_info['新疆维吾尔自治区']},
+                   {name: '江苏', value: data.map_info['江苏省']},
+                   {name: '浙江', value: data.map_info['浙江省']},
+                   {name: '江西', value: data.map_info['江西省']},
+                   {name: '湖北', value: data.map_info['湖北省']},
+                   {name: '广西', value: data.map_info['广西省']},
+                   {name: '甘肃', value: data.map_info['甘肃省']},
+                   {name: '山西', value: data.map_info['山西省']},
+                   {name: '内蒙古', value: data.map_info['内蒙古自治区']},
+                   {name: '陕西', value: data.map_info['陕西省']},
+                   {name: '吉林', value: data.map_info['吉林省']},
+                   {name: '福建', value: data.map_info['福建省']},
+                   {name: '贵州', value: data.map_info['贵州省']},
+                   {name: '广东', value: data.map_info['广东省']},
+                   {name: '青海', value: data.map_info['青海省']},
+                   {name: '西藏', value: data.map_info['西藏自治区']},
+                   {name: '四川', value: data.map_info['四川省']},
+                   {name: '宁夏', value: data.map_info['宁夏回族自治区']},
+                   {name: '海南', value: data.map_info['海南省']},
+                   {name: '台湾', value: data.map_info['台湾省']},
+                   {name: '香港', value: data.map_info['香港特别行政区']},
+                   {name: '澳门', value: data.map_info['澳门特别行政区']}
+               ]
+           }]
+       });
+   })
 </script>
 </body>
 </html>

@@ -22,4 +22,5 @@ urlpatterns = [
     path('map_page/', views.map_page,name='map'),
     path('bar_json/', views.bar_json,name='bar_json'),
     path('pie_json/', views.pie_json,name='pie_json'),
+    path('map_json/', views.map_json, name='map_json'),
 ]

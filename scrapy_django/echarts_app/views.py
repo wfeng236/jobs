@@ -36,12 +36,11 @@ def pie_json(request):
     key_info = rds.get('key_info_new').decode('utf-8')
     key_json = json.loads(key_info)
     return JsonResponse({'key_info':key_json})
-
 def map_json(request):
-    ''''''
-
-
-
+    rds = getMyConn().getRedisConn()
+    map_info = rds.get('map_info').decode('utf-8')
+    map_json = json.loads(map_info)
+    return JsonResponse({'map_info':map_json})
 
 
 
