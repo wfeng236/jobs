@@ -120,7 +120,4 @@ def getUserDistribution():
 if __name__ == '__main__':
     # city_data_query()
     getUserDistribution()
-    # rds = redis.Redis(host="wnm1", port=9090)
-    # a = rds.get('map_info')
-    # print(a)
 
