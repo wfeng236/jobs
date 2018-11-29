@@ -20,9 +20,9 @@
 	<div class="content2">
 		<h2>Register</h2>
 		<form >
-			<input id='username' type="text" name="username" value="" placeholder='NAME AND SURNAME'>
+			<input id='username' type="text" name="username" value="" placeholder='NAME AND SURNAME' onkeyup="value=value.replace(/[\d]/g,'') ">
             <img id='usernameimg' alt="" style="width:25px;height:25px">
-			<input id="phone" type="tel" name="phone" value="" placeholder="PHONE" maxlength="11">
+			<input id="phone" type="tel" name="phone" value="" placeholder="PHONE" maxlength="11" onkeyup="value=value.replace(/[^\d]/g, '')">
             <img id="phoneimg" alt="" style="width:25px;height:25px">
 			<input id='email' type="email" name="email" value="" placeholder='EMAIL ADDRESS'>
             <img id="emailimg" alt="" style="width:25px;height:25px">
@@ -32,6 +32,10 @@
             <input id="password2" type="password" name="password2" value="" placeholder='Continue typing password'>
             <img id="passwordimg2" alt="" style="width:25px;height:25px">
             <h3 id="password2h3"></h3>
+            <select name="city" id="city" style="margin-top: 30px">
+                <option value="0">---请选择城市---</option>
+
+            </select>
 			<input id='submit' type="button" class="register" value="Register">
             <img id="submitimg" alt="" style="height:50px;">
 		</form>
@@ -43,6 +47,11 @@
 </div>
 <script src="/static/scripts/jquery/jquery-1.7.1.js"></script>
 <script>
+     //遍历添加城市
+     PROVINCE = ['北京市', '天津市', '上海市', '重庆市', '河北省', '山西省', '辽宁省', '吉林省', '黑龙江省', '江苏省', '浙江省', '安徽省', '福建省', '江西省', '山东省', '河南省', '湖北省', '湖南省', '广东省', '海南省', '四川省', '贵州省', '云南省', '陕西省', '甘肃省', '青海省', '台湾省', '内蒙古自治区', '广西壮族自治区', '西藏自治区', '宁夏回族自治区', '新疆维吾尔自治区', '香港特别行政区', '澳门特别行政区']
+     for(var i = 0; i < PROVINCE.length; i++){
+         $('#city').append('<option>' + PROVINCE[i] + '</option>');
+     }
     //异步验证注册
     $("#submit").click(function(){
         var username=$("#username").val();
@@ -50,17 +59,19 @@
         var email = $("#email").val();
         var password = $("#password").val();
         var password2 = $("#password2").val();
+        var city = $('#city').children('option:selected').html();
         var csrftoken ="{{ csrf_token }}";
         if(username.length != 0){
             if(phone.length != 0 ){
                 if(email.length !=0){
-                    if(password.length != 0  && password2.length != 0){
+                    if(city != '---请选择城市---'){
+                        if(password.length != 0  && password2.length != 0 && password.length >=6 &&password2.length >=6){
                         $.ajaxSetup({headers:{"X-CSRFToken":csrftoken}});
                        $("#submitimg").attr('src','/static/images/ajax/load.gif/');
                        $.ajax({
                            type:"post", //请求方式get/post
                            url:"{% url 'user:register:logic' %}",
-                           data:{'username':username,'phone':phone,'email':email,'password':password,'password2':password2},
+                           data:{'username':username,'phone':phone,'email':email,'password':password,'password2':password2,'city':city},
                            dataType:"html",
                            success:function(a) {
                                var msg = a;
@@ -72,12 +83,18 @@
                                    req = confirm('你的邮箱还没验证，请尽快验证，点击确定进入邮箱验证页面！！！');
                                    if(req){
                                        location.href = '{% url 'user:register:emailyz' %}?username='+username+'&flag=1'
+                                   }else{
+                                       location.href = '{% url 'user:login:logic' %}'
                                    }
                                }
                            }
                        });
+                    }else{alert('密码输入为空，或小于6位数')
+                        }
+
                     }else{
-                        alert('密码输入不能为空！！！')
+                        
+                        alert('请选择城市！！！')
                     }
                 }else{
                     alert('邮箱不能为空！！！')
@@ -105,12 +122,11 @@
                    dataType:"html",
                    success:function(a){
                        var msg = a;
-                       console.log(msg)
+                       console.log(msg);
                        if(msg == "0"){
                            $("#usernameimg").attr('src','/static/images/ajax/error.jpg/');
                            alert('该用户名已存在，请重新输入！')
                        }else if(msg == "1"){
-                           alert('该用户名可用！');
                            $("#usernameimg").attr('src','/static/images/ajax/ok.gif/');
                        }
 
@@ -142,15 +158,14 @@
                    dataType:"html",
                    success:function(a){
                        var msg = a;
-                       console.log(msg)
+                       console.log(msg);
                        if(msg == "0"){
                            $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');
                            alert('该手机号已经注册，请重新输入！')
                        }else if(msg == "1"){
-                           alert('该手机号可用！');
                            $("#phoneimg").attr('src','/static/images/ajax/ok.gif/');
                        }else if(msg == '2'){
-                           alert('手机号不能为空！！！')
+                           alert('手机号不能为空！！！');
                            $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');
                        }
 
@@ -178,41 +193,28 @@
             alert("格式不正确！请重新输入！");
             $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
             }else{
-                req = confirm('点击确定发送验证到邮箱，进入邮箱验证！');
-                if(req){
-                    $("#emailimg").attr('src','/static/images/ajax/load.gif/');
-                    $.ajax({
-                        type:"get",
-                        url:'{% url 'user:register:ajax_emailyz' %}',
-                        data:{'email':email},
-                        success:function(a){
-                            var msg = a;
-                            console.log(msg);
-                            if(msg == '1'){
-                                alert('邮箱发送成功，请进入邮箱验证！');
-                                $("#emailimg").attr('src','/static/images/ajax/ok.gif/');
-                            }else{
-                                alert('邮箱发送失败，请重新发送！');
-                                $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
-                            }
+                $("#emailimg").attr('src','/static/images/ajax/load.gif/');
+                $.ajax({
+                    type:"get",
+                    url:'{% url 'user:register:ajax_emailyz' %}',
+                    data:{'email':email},
+                    success:function(a){
+                        var msg = a;
+                        console.log(msg);
+                        if(msg == '1'){
+                            alert('邮箱发送成功，请进入邮箱验证！');
+                            $("#emailimg").attr('src','/static/images/ajax/ok.gif/');
+                        }else{
+                            alert('邮箱发送失败，请重新发送！');
+                            $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
+                        }
                         }
                     })
                 }
             }
-        }
+
     });
 
-    //键盘按下事件
-{#    $("#password").keypress(function () {#}
-{#        console.log(event.keyCode);#}
-{#        if (65 <= event.keyCode && event.keyCode <= 90){#}
-{#            $("#passwordspan").html("大写");#}
-{#            $("#passwordspan").css('color','red')#}
-{#            $("#passwordimg").css("display","none");#}
-{#        }else {#}
-{#            $("#J_tipUpperCaseBox").css("display","block");#}
-{#        }#}
-{#    });#}
      $("#password").click(function(){
          //获取email的值
         var email = $("#email").val();
@@ -232,6 +234,9 @@
             $("#passwordimg2").attr('src','/static/images/ajax/ok.gif/');
             $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
             $("#password2h3").html('');
+            }else{
+                $("#passwordimg2").attr('src','');
+                $("#passwordimg").attr('src','');
             }
             //数字组合
             var number = /^[0-9]+$/;
@@ -258,60 +263,37 @@
             }
 
         });
-    //jquery验证密码规则
-{#    $("#password2").click(function(){#}
-{#            var number = /^[0-9]+$/;#}
-{#            var digital_alphabet = /^[A-Za-z0-9]+$/;#}
-{#            var password = $("#password").val();#}
-{#            if(password.length < 6){#}
-{#                $("#passwordimg").attr('src','/static/images/ajax/error.jpg/');#}
-{#                alert('密码长度必须大于6位！密码可以由数字字母字符组成，三种组合更加安全！')#}
-{#            }else if(password.length >=6 && number.test(password)){#}
-{#                alert('密码等级低级，建议使用字母数字组合更安全哦！');#}
-{#                $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');#}
-{#            }else if(password.length >=6 && digital_alphabet.test(password)){#}
-{#                alert('密码等级中级，建议加入字符组合更安全哦！');#}
-{#                $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');#}
-{#            }else if(password.length >=6 && /[a-z]/.test(password) && /[0-9]/.test(password) && /[-\.__+{}][,./]/.test(password) || /[A-Z]/.test(password) && /[0-9]/.test(password) && /[-\.__+{}][,./]/.test(password)){#}
-{#                alert('密码等级高级，安全性很好！');#}
-{#                $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');#}
-{#            }#}
-{##}
-{#        });#}
     $("#password2").click(function(){
-        $("#passwordimg2").attr('src','');
-        $("#passwordimg").attr('src','');
-        $("#password2h3").html('');
-    });
-{#    $("#password").click(function(){#}
-{#        $("#passwordimg2").attr('src','');#}
-{#        $("#passwordimg").attr('src','');#}
-{#        $("#password2h3").html('');#}
-{#    });#}
-    //jquery验证二次密码输入是否一致
-    $("#password2").blur(function(){
         //获取第一次输入的密码
         var password1 = $("#password").val();
         //获取第二次输入的密码
         var password2 = $("#password2").val();
-        if(password1 == password2 && password2 != 0){
-            $("#passwordimg2").attr('src','/static/images/ajax/ok.gif/');
-            $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
-            $("#password2h3").html('');
+        $("#passwordimg2").attr('src','');
+        $("#passwordimg").attr('src','');
+        $("#password2h3").html('');
+        if(password1.length < 6) {
+            $("#passwordimg").attr('src', '/static/images/ajax/error.jpg/');
+            alert('密码长度必须大于6位！！！');
         }else{
-            $("#passwordimg2").attr('src','/static/images/ajax/error.jpg/');
-            $("#password2h3").html('两次密码输入不一致，请重新输入！！！');
-            $("#password2h3").css('color',"red")
+            //jquery验证二次密码输入是否一致
+            $("#password2").blur(function(){
+                if(password1 == password2 && password2 != 0){
+                    $("#passwordimg2").attr('src','/static/images/ajax/ok.gif/');
+                    $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
+                    $("#password2h3").html('');
+                }else if(password1.length == 0 || password2.length == 0 || password1.length < 6){
+                    $("#passwordimg1").attr('src','/static/images/ajax/error.jpg/');
+                    $("#passwordimg2").attr('src','/static/images/ajax/error.jpg/');
+                    alert('密码长度必须大于6位！！！');
+                }else{
+                    $("#passwordimg2").attr('src','/static/images/ajax/error.jpg/');
+                    $("#password2h3").html('两次密码输入不一致，请重新输入！！！');
+                    $("#password2h3").css('color',"red")
+                }
+            });
         }
     });
-    //二次密码框失去焦点事件
-{#    $("#password2").blur(function(){#}
-{#        //获取第二次输入的密码#}
-{#        var password2 = $("#password2").val();#}
-{#        if(password2.length == 0){#}
-{#            $("#passwordimg2").attr('src','/static/images/ajax/error.jpg/');#}
-{#        }#}
-{#    });#}
+
 
 </script>
 

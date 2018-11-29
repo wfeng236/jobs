@@ -11,7 +11,8 @@ from admin_app.captcha.image import ImageCaptcha
 from admin_app.models import User
 from django.core.mail import send_mail, EmailMultiAlternatives
 from admin_app import utils
-
+from job_info_app.get_city_of_ip import get_city
+from admin_app.get_ip import get_ip
 # Create your views here.
 
 
@@ -101,6 +102,9 @@ def register_logic(request):
         password = utils.hashCode(password2,salt=salt)
         #注册时间
         time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # #获取用户ip对应的城市
+        city = request.POST.get('city')
+        print(city)
         #获取邮箱验证状态
         email_status = request.session.get('email_status')
         if email_status == '1':
@@ -109,9 +113,9 @@ def register_logic(request):
             status = 0
         print(user_id,username,password,phone,email,salt,time,status)
         with transaction.atomic():
-            if username and phone and email and password1 == password2:
+            if username and phone and email and password1 == password2 and len(password1) >= 6 and city:
                 User(user_id=user_id, username=username, password=password, phone=phone, email=email, salt=salt,
-                     time=time, status=status).save()
+                     time=time, status=status,city=city).save()
                 if status == 0:
                     return HttpResponse('5')
                 else:
@@ -122,8 +126,8 @@ def register_logic(request):
             #             return HttpResponse('000')
             #     else:
             #         return HttpResponse('00')
-            # else:
-            #     return HttpResponse('0')
+            else:
+                return HttpResponse('0')
     except:
         traceback.print_exc()
         #注册失败重新回到注册页面
