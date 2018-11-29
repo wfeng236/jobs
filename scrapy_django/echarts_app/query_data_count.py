@@ -64,7 +64,6 @@ def city_data_query():
     print(dashuju_count)
     print(ai_count)
     print(pachong_count)
-    rds = redis.Redis(host='wnm1', port=7000)
     city_info = {
        'beijing_count':str(beijing_count),
         'shanghai_count':str(shanghai_count),
