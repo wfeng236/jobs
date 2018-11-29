@@ -33,23 +33,3 @@ class LoginCheckMiddleware(MiddlewareMixin):
         return False
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

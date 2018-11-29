@@ -60,14 +60,17 @@ class VeryfyAccessMiddleware(MiddlewareMixin):
             count = r.get(name)
             if not count:
                 # 第一次访问，设置有效时间 60秒
-                self.pipe(r, name, 1, 60)
+                r.set(name, 1, 60)
+                # self.pipe(r, name, 1, 60)
             elif int(count) > 100:
                 # 一分钟访问超过 100次, 封 ip一天
-                self.pipe(r, banName, 1, 24 * 60 * 60)
+                r.set(banName, 1, 24 * 60 * 60)
+                # self.pipe(r, banName, 1, 24 * 60 * 60)
                 return JsonResponse({'msg': '出错了！'})
             else:
                 # 重新设置name会使过期时间失效，需要重新设置
-                self.pipe(r, name, int(count) + 1, int(r.ttl(name) or 0))
+                r.set(name, int(count) + 1, int(r.ttl(name) or 0))
+                # self.pipe(r, name, int(count) + 1, int(r.ttl(name) or 0))
 
     def pipe(self, rd, name, count, time):
         pipe = rd.pipeline(transaction=True)
