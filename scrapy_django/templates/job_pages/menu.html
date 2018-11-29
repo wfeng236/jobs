@@ -87,7 +87,7 @@
 				<div class="ui_tb_h30">
 					<div class="ui_flt" style="height: 30px; line-height: 30px;">
 						共有
-						<span id="job_total" class="ui_txt_bold04">{{ total_count }}</span>
+						<span id="job_total" class="ui_txt_bold04">{{ totalCount }}</span>
 						条记录，当前第
 						<span class="ui_txt_bold04" id="cur_page">1</span>/
                         <span id="page_total" class="ui_txt_bold04">{{ page.num_pages }}</span>
@@ -338,7 +338,7 @@
                  dataType: "json",//声明当前的响应为json格式，则success中的abc就
                  //是解析后的js对象
                  success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
-                     var job = abc.page["objects"];
+                     var job = abc.page.objects;
                      $("#show_job").empty();
                      page_total = parseInt(abc.page.num_pages);
                      for(var i=0; i<job.length;i++){

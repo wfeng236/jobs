@@ -121,7 +121,7 @@
                 var username = $("#username").val();
                 var password = $("#password").val();
                 var usercode = $("#yzm").val();
-                console.log(usercode)
+                console.log(username,password,usercode);
                 var csrftoken ="{{ csrf_token }}";
                 if(usercode == 0){
                     alert('验证码输入不能为空！！！');
@@ -136,20 +136,21 @@
                                dataType:"html",
                                success:function(a){
                                    var msg = a;
-                                   console.log(msg)
-                                   if(msg == '2' && msg == '1'){
+                                   console.log('123',msg);
+                                   if(msg == '6'){
                                    location.href = '{% url 'show:main:page' %}'
                                    }else if(msg == '0'){
                                        $("#yzmtp").attr('src','{% static '/images/ajax/error.jpg' %}');
                                        $("#yzmwz").text('验证码输入错误，请重新输入！');
                                        $("#submitimg").attr('src','/static/images/ajax/error.jpg/');
-                                   }else if(msg == '3'){
-                                       alert('用户名或密码错误！！！')
-                                   }else if(msg == '1'){
-                                       alert('账号或密码错误！！！')
+                                   }else if(msg == '00'){
+                                       alert('账号或密码错误！！！');
                                        $("#submitimg").attr('src','/static/images/ajax/error.jpg/');
                                        $("#usernameimg").attr('src','/static/images/ajax/error.jpg/');
                                        $("#passwordimg").attr('src','/static/images/ajax/error.jpg/');
+                                   }else if(msg == '000'){
+                                       $("#submitimg").attr('src','/static/images/ajax/error.jpg/');
+                                       alert("邮箱未验证，请先进入您的邮箱验证！！！")
                                    }
                                }
 

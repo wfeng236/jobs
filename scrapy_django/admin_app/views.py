@@ -57,10 +57,11 @@ def ajax_emailyz(request):
     msg.send()
     return HttpResponse('1')
 
-#跳转用户验证页面
+#跳转用户邮箱验证页面
 def register_emailyz(request):
     request.session['email_status']='1'
-    return render(request,'admin_pages/emailyz.html')
+    username = request.GET.get('username')
+    return render(request,'admin_pages/emailyz.html',{'username':username})
 
 #注册接收
 def register_logic(request):
@@ -105,11 +106,21 @@ def register_logic(request):
             status = 0
         print(user_id,username,password,phone,email,salt,time,status)
         with transaction.atomic():
-            if password1 == password2:
-                User(user_id=user_id,username=username,password=password,phone=phone,email=email,salt=salt,time=time,status=status).save()
-                return render(request,"admin_pages/register_ok.html")
-            else:
-                return redirect("user:register:page")
+            if username and phone and email and password1 == password2:
+                User(user_id=user_id, username=username, password=password, phone=phone, email=email, salt=salt,
+                     time=time, status=status).save()
+                if status == 0:
+                    return HttpResponse('5')
+                else:
+                    return HttpResponse('6')
+            #             else:
+            #                 return HttpResponse('0000')
+            #         else:
+            #             return HttpResponse('000')
+            #     else:
+            #         return HttpResponse('00')
+            # else:
+            #     return HttpResponse('0')
     except:
         traceback.print_exc()
         #注册失败重新回到注册页面
@@ -117,7 +128,14 @@ def register_logic(request):
 
 #登录跳转页面
 def login_page(request):
-    return render(request, 'admin_pages/login.html')
+    # 获取用户对象
+    username = request.GET.get('username')
+    database_user = User.objects.filter(username=username)
+    print(database_user)
+    if database_user:
+        database_user[0].status = 1
+        database_user[0].save()
+        return render(request, 'admin_pages/login.html')
 
 #生成验证码
 def get_captcha(request):
@@ -169,23 +187,31 @@ def login_logic(request):
         #2.获取用户输入码
         usercode=request.POST.get("usercode")
         with transaction.atomic():
-            # 如果对象存在
-            if database_user:
-                # 拿到对象盐值加密的密码
-                database_password = database_user[0].password
-                # 拿到盐
-                salt = database_user[0].salt
-                # 将新输入的密码盐值重新哈希加密
-                password_1 = utils.hashCode(password, salt=salt)
-                user = User.objects.filter(username=username,password=password_1)
             if realcode.lower() == usercode.lower():
-                return HttpResponse('1')
-            return HttpResponse('0')
-            if user:
-                # 将用户名存入session
-                request.session['login_user'] = username
-                return HttpResponse('2')
-            return HttpResponse('3')
+                # 如果对象存在-
+                if database_user:
+                    # 获取用户邮箱验证状态
+                    email_status = database_user[0].status
+                    # 拿到对象盐值加密的密码
+                    database_password = database_user[0].password
+                    # 拿到盐
+                    salt = database_user[0].salt
+                    # 将新输入的密码盐值重新哈希加密
+                    password_1 = utils.hashCode(password, salt=salt)
+                    if User.objects.filter(username=username, password=password_1):
+                        if email_status == '1':
+                            # 将用户名存入session
+                            request.session['login_user'] = username
+                            return HttpResponse('6')
+                        else:
+                            return HttpResponse('000')
+                    else:
+                        return HttpResponse('00')
+                else:
+                    return HttpResponse('00')
+            else:
+                return HttpResponse('0')
+
     except:
         traceback.print_exc()
         #登录失败重新回到注册页面
