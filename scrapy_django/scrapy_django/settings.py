@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'admin_app',
     'job_info_app',
+    'echarts_app',
 ]
 
 MIDDLEWARE = [
@@ -157,4 +158,3 @@ CACHES = {
     }
 }
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-

@@ -65,6 +65,7 @@ def register_emailyz(request):
     print(flag)
     return render(request,'admin_pages/emailyz.html',{'username':username,'flag':flag})
 
+
 #注册接收
 def register_logic(request):
     dict_1 = {
@@ -138,6 +139,7 @@ def login_page(request):
         database_user[0].status = 1
         database_user[0].save()
     return render(request, 'admin_pages/login.html')
+
 
 #生成验证码
 def get_captcha(request):
