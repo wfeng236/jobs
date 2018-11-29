@@ -33,6 +33,7 @@
             <img id="passwordimg2" alt="" style="width:25px;height:25px">
             <h3 id="password2h3"></h3>
 			<input id='submit' type="button" class="register" value="Register">
+            <img id="submitimg" alt="" style="height:50px;">
 		</form>
 	</div>
 	<div class="clear"></div>
@@ -59,17 +60,18 @@
                        $.ajax({
                            type:"post", //请求方式get/post
                            url:"{% url 'user:register:logic' %}",
-                           data:{'username':username,'phone':phone,'email':email,'password':password,'password2':password},
+                           data:{'username':username,'phone':phone,'email':email,'password':password,'password2':password2},
                            dataType:"html",
                            success:function(a) {
                                var msg = a;
                                console.log('123', msg);
                                if(msg == '6'){
+                                   $("#submitimg").attr('src','/static/images/ajax/ok.gif/');
                                    location.href = '{% url 'user:login:logic' %}'
                                }else if(msg == '5'){
                                    req = confirm('你的邮箱还没验证，请尽快验证，点击确定进入邮箱验证页面！！！');
                                    if(req){
-                                       location.href = '{% url 'user:register:emailyz' %}?username='+username
+                                       location.href = '{% url 'user:register:emailyz' %}?username='+username+'&flag=1'
                                    }
                                }
                            }
@@ -169,8 +171,8 @@
 {#    });#}
     //异步发送邮箱验证码
     $("#email").blur(function(){
-        var email = $("#email").val();
-        console.log(email)
+        var email=$("#email").val();
+        console.log(email);
         if(email.length != 0){
             if(!email.match(/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/)){
             alert("格式不正确！请重新输入！");
@@ -182,15 +184,15 @@
                     $.ajax({
                         type:"get",
                         url:'{% url 'user:register:ajax_emailyz' %}',
-                        data:"email="+email,
+                        data:{'email':email},
                         success:function(a){
                             var msg = a;
                             console.log(msg);
                             if(msg == '1'){
-                                alert('邮箱发送成功，请进入邮箱验证！')
+                                alert('邮箱发送成功，请进入邮箱验证！');
                                 $("#emailimg").attr('src','/static/images/ajax/ok.gif/');
                             }else{
-                                alert('邮箱发送失败，请重新发送！')
+                                alert('邮箱发送失败，请重新发送！');
                                 $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
                             }
                         }
