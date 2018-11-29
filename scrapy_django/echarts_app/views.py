@@ -3,7 +3,9 @@ import json
 import redis
 from django.http import JsonResponse
 from django.shortcuts import render
-from .query_data_count import city_data_query
+
+from job_info_app.my_connect import getMyConn
+# from .query_data_count import city_data_query
 # Create your views here.
 def bar_page(request):
     return render(request,'echarts_pages/柱状图.html')
@@ -24,12 +26,22 @@ def map_page(request):
 #     # print(key_info)
 #     return JsonResponse({'city_info':''})
 def bar_json(request):
-    rds = redis.Redis(host='wnm1', port=7000)
+    rds = getMyConn().getRedisConn()
     city_info = rds.get('city_info_new').decode('utf-8')
     city_json = json.loads(city_info)
     return JsonResponse({'city_info':city_json})
+
 def pie_json(request):
-    rds = redis.Redis(host='wnm1', port=7000)
+    rds = getMyConn().getRedisConn()
     key_info = rds.get('key_info_new').decode('utf-8')
     key_json = json.loads(key_info)
     return JsonResponse({'key_info':key_json})
+
+def map_json(request):
+    ''''''
+
+
+
+
+
+
