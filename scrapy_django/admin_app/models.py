@@ -11,5 +11,6 @@ class User(models.Model):
     salt = models.CharField(max_length=10)
     time = models.CharField(max_length=20)
     status = models.CharField(max_length=11)
+    city = models.CharField(max_length=100)
     class Meta:
         db_table = 't_users'
