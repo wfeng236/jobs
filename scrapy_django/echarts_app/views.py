@@ -37,7 +37,7 @@ def pie_json(request):
     key_json = json.loads(key_info)
     return JsonResponse({'key_info':key_json})
 def map_json(request):
-    rds = redis.Redis(host='wnm1', port=7000)
+    rds = getMyConn().getRedisConn()
     map_info = rds.get('map_info').decode('utf-8')
     map_json = json.loads(map_info)
     return JsonResponse({'map_info':map_json})
