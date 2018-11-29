@@ -9,7 +9,6 @@
 @desc:
 '''
 import json
-
 import happybase
 import redis
 
