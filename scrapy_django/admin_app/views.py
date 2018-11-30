@@ -61,7 +61,7 @@ def ajax_emailyz(request):
     data = utils.getSalt()
     #链接redis存储，并设置生命周期为半小时
     conn.set('username',json.dumps(data),60*30)
-    html_content = '<p>感谢注册<a href="http://172.16.14.49:8000/user/register/emailyz/?username='+username+'&data='+data+'" target=blank>www.niubiyouxiang.com</a>，\欢迎'+username+'来验证你的邮箱，验证结束你就可以登录了！</p>'
+    html_content = '<p>感谢注册<a href="http://172.16.14.46:8000/user/register/emailyz/?username='+username+'&data='+data+'" target=blank>www.niubiyouxiang.com</a>，\欢迎'+username+'来验证你的邮箱，验证结束你就可以登录了！</p>'
     msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
     msg.attach_alternative(html_content, "text/html")
     msg.send()

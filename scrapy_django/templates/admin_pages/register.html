@@ -67,7 +67,7 @@
                     if(city != '---请选择城市---'){
                         if(password.length != 0  && password2.length != 0 && password.length >=6 &&password2.length >=6){
                         $.ajaxSetup({headers:{"X-CSRFToken":csrftoken}});
-                       $("#submitimg").attr('src','/static/images/ajax/load.gif/');
+                       $("#submitimg").attr('src','/static/images/ajax/load.gif');
                        $.ajax({
                            type:"post", //请求方式get/post
                            url:"{% url 'user:register:logic' %}",
@@ -77,7 +77,7 @@
                                var msg = a;
                                console.log('123', msg);
                                if(msg == '6'){
-                                   $("#submitimg").attr('src','/static/images/ajax/ok.gif/');
+                                   $("#submitimg").attr('src','/static/images/ajax/ok.gif');
                                    location.href = '{% url 'user:register:ok' %}?username='+username+'flag=1'
                                }else if(msg == '5'){
                                    req = confirm('你的邮箱还没验证，请尽快验证！！！');
@@ -112,7 +112,7 @@
         var csrftoken ="{{ csrf_token }}";
         if(username.length != 0){
                $.ajaxSetup({headers:{"X-CSRFToken":csrftoken}});
-               $("#usernameimg").attr('src','/static/images/ajax/load.gif/');
+               $("#usernameimg").attr('src','/static/images/ajax/load.gif');
                $.ajax({
                    type:"post", //请求方式get/post
                    url:"{% url 'user:register:ajax_username' %}",
@@ -122,10 +122,10 @@
                        var msg = a;
                        console.log(msg);
                        if(msg == "0"){
-                           $("#usernameimg").attr('src','/static/images/ajax/error.jpg/');
+                           $("#usernameimg").attr('src','/static/images/ajax/error.jpg');
                            alert('该用户名已存在，请重新输入！')
                        }else if(msg == "1"){
-                           $("#usernameimg").attr('src','/static/images/ajax/ok.gif/');
+                           $("#usernameimg").attr('src','/static/images/ajax/ok.gif');
                        }
 
                    }
@@ -133,7 +133,7 @@
                     })
         }else{
             alert('用户名不能为空！');
-            $("#usernameimg").attr('src','/static/images/ajax/error.jpg/');
+            $("#usernameimg").attr('src','/static/images/ajax/error.jpg');
         }
     });
     //jquery验证手机号
@@ -145,10 +145,10 @@
         //判断输入的值是否为11位
         if(phone.length <11 && phone.length != 0){
             alert('手机号为11位，当前输入小于11位，请检查后重新输入！');
-            $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');
+            $("#phoneimg").attr('src','/static/images/ajax/error.jpg');
         }else if(phone.length == 11){
                $.ajaxSetup({headers:{"X-CSRFToken":csrftoken}});
-               $("#phoneimg").attr('src','/static/images/ajax/load.gif/');
+               $("#phoneimg").attr('src','/static/images/ajax/load.gif');
                $.ajax({
                    type:"post", //请求方式get/post
                    url:"{% url 'user:register:ajax_phone' %}",
@@ -158,13 +158,13 @@
                        var msg = a;
                        console.log(msg);
                        if(msg == "0"){
-                           $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');
+                           $("#phoneimg").attr('src','/static/images/ajax/error.jpg');
                            alert('该手机号已经注册，请重新输入！')
                        }else if(msg == "1"){
-                           $("#phoneimg").attr('src','/static/images/ajax/ok.gif/');
+                           $("#phoneimg").attr('src','/static/images/ajax/ok.gif');
                        }else if(msg == '2'){
                            alert('手机号不能为空！！！');
-                           $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');
+                           $("#phoneimg").attr('src','/static/images/ajax/error.jpg');
                        }
 
                    }
@@ -179,7 +179,7 @@
 {#        var phone = $("#phone").val();#}
 {#        if(phone.length == 0){#}
 {#            alert('手机号不能为空！');#}
-{#            $("#phoneimg").attr('src','/static/images/ajax/error.jpg/');#}
+{#            $("#phoneimg").attr('src','/static/images/ajax/error.jpg');#}
 {#        }#}
 {#    });#}
     //异步发送邮箱验证码
@@ -190,11 +190,11 @@
         console.log(email);
         if(username.length != 0){
             if(email.length != 0){
-            if(!email.match(/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/)){
-            alert("格式不正确！请重新输入！");
-            $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
+                if(!email.match(/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/)){
+                alert("格式不正确！请重新输入！");
+                $("#emailimg").attr('src','/static/images/ajax/error.jpg');
             }else{
-                $("#emailimg").attr('src','/static/images/ajax/load.gif/');
+                $("#emailimg").attr('src','/static/images/ajax/load.gif');
                 $.ajax({
                     type:"get",
                     url:'{% url 'user:register:ajax_emailyz' %}',
@@ -204,19 +204,21 @@
                         console.log(msg);
                         if(msg == '1'){
                             alert('邮箱发送成功，请进入邮箱验证！');
-                            $("#emailimg").attr('src','/static/images/ajax/ok.gif/');
+                            $("#emailimg").attr('src','/static/images/ajax/ok.gif');
                         }else{
                             alert('邮箱发送失败，请重新发送！');
-                            $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
+                            $("#emailimg").attr('src','/static/images/ajax/error.jpg');
                         }
                         }
                     })
                 }
+            }else{
+                alert('邮箱不能为空！！！')
             }
         }else{
-           $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
-           $("#usernameimg").attr('src','/static/images/ajax/error.jpg/');
-           alert('邮箱发送失败，用户名不能为空！！！')
+           $("#emailimg").attr('src','/static/images/ajax/error.jpg');
+           $("#usernameimg").attr('src','/static/images/ajax/error.jpg');
+           alert('用户名不能为空！！！')
         }
 
 
@@ -227,7 +229,7 @@
         var email = $("#email").val();
         if(email.length == 0 ){
         alert('邮箱不能为空，请重新输入！');
-        $("#emailimg").attr('src','/static/images/ajax/error.jpg/');
+        $("#emailimg").attr('src','/static/images/ajax/error.jpg');
     }
      });
 
@@ -238,8 +240,8 @@
             //获取第二次输入的密码
             var password2 = $("#password2").val();
             if(password1 == password2 && password2 != 0){
-            $("#passwordimg2").attr('src','/static/images/ajax/ok.gif/');
-            $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
+            $("#passwordimg2").attr('src','/static/images/ajax/ok.gif');
+            $("#passwordimg").attr('src','/static/images/ajax/ok.gif');
             $("#password2h3").html('');
             }else{
                 $("#passwordimg2").attr('src','');
@@ -253,7 +255,7 @@
             var password = $("#password").val();
             if(password.length < 6){
                 $("#passwordspan").html('');
-                $("#passwordimg").attr('src','/static/images/ajax/error.jpg/');
+                $("#passwordimg").attr('src','/static/images/ajax/error.jpg');
             }else if(password.length >=6 && number.test(password)){
                 $("#passwordimg").css("display","none");
                 $("#passwordspan").html('低级');
@@ -281,15 +283,15 @@
             $("#password2h3").html('');
 
             if(password1 == password2 && password1.length >=6 && password2.length >= 6){
-                $("#passwordimg2").attr('src','/static/images/ajax/ok.gif/');
-                $("#passwordimg").attr('src','/static/images/ajax/ok.gif/');
+                $("#passwordimg2").attr('src','/static/images/ajax/ok.gif');
+                $("#passwordimg").attr('src','/static/images/ajax/ok.gif');
                 $("#password2h3").html('');
             }else if(password1.length == 0 || password2.length == 0 || password1.length < 6){
-                $("#passwordimg").attr('src','/static/images/ajax/error.jpg/');
-                $("#passwordimg2").attr('src','/static/images/ajax/error.jpg/');
+                $("#passwordimg").attr('src','/static/images/ajax/error.jpg');
+                $("#passwordimg2").attr('src','/static/images/ajax/error.jpg');
                 alert('密码长度必须大于6位！！！');
             }else{
-                $("#passwordimg2").attr('src','/static/images/ajax/error.jpg/');
+                $("#passwordimg2").attr('src','/static/images/ajax/error.jpg');
                 $("#password2h3").html('两次密码输入不一致，请重新输入！！！');
                 $("#password2h3").css('color',"red")
             }
