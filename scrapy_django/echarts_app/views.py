@@ -8,11 +8,11 @@ from job_info_app.my_connect import getMyConn
 # from .query_data_count import city_data_query
 # Create your views here.
 def bar_page(request):
-    return render(request,'echarts_pages/柱状图.html')
+    return render(request, 'echarts_pages/bar.html')
 def pie_page(request):
-    return render(request,'echarts_pages/饼图.html')
+    return render(request, 'echarts_pages/pie.html')
 def map_page(request):
-    return render(request,'echarts_pages/地图.html')
+    return render(request, 'echarts_pages/map.html')
 
 # def bar_json(request):
 #     rds = redis.Redis(host='wnm1', port=7000)
