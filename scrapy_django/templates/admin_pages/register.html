@@ -191,31 +191,31 @@
         if(username.length != 0){
             if(email.length != 0){
                 if(!email.match(/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/)){
-                alert("格式不正确！请重新输入！");
-                $("#emailimg").attr('src','/static/images/ajax/error.jpg');
-            }else{
-                $("#emailimg").attr('src','/static/images/ajax/load.gif');
-                $.ajax({
-                    type:"get",
-                    url:'{% url 'user:register:ajax_emailyz' %}',
-                    data:{'email':email,'username':username},
-                    success:function(a){
-                        var msg = a;
-                        console.log(msg);
-                        if(msg == '1'){
-                            alert('邮箱发送成功，请进入邮箱验证！');
-                            $("#emailimg").attr('src','/static/images/ajax/ok.gif');
-                        }else{
-                            alert('邮箱发送失败，请重新发送！');
-                            $("#emailimg").attr('src','/static/images/ajax/error.jpg');
-                        }
-                        }
-                    })
+                    alert("格式不正确！请重新输入！");
+                    $("#emailimg").attr('src','/static/images/ajax/error.jpg');
                 }
-            }else{
-                alert('邮箱不能为空！！！')
+                else{
+                    $("#emailimg").attr('src','/static/images/ajax/load.gif');
+                    $.ajax({
+                        type:"get",
+                        url:'{% url 'user:register:ajax_emailyz' %}',
+                        data:{'email':email,'username':username},
+                        success:function(a){
+                            var msg = a;
+                            console.log(msg);
+                            if(msg == '1'){
+                                alert('邮箱发送成功，请进入邮箱验证！');
+                                $("#emailimg").attr('src','/static/images/ajax/ok.gif');
+                            }else{
+                                alert('邮箱发送失败，请重新发送！');
+                                $("#emailimg").attr('src','/static/images/ajax/error.jpg');
+                            }
+                            }
+                        })
+                    }
             }
-        }else{
+        }
+        else{
            $("#emailimg").attr('src','/static/images/ajax/error.jpg');
            $("#usernameimg").attr('src','/static/images/ajax/error.jpg');
            alert('用户名不能为空！！！')
