@@ -59,7 +59,8 @@
                 //2.初始化 post 请求 xhr请求方式 请求地址 请求参数
                 number = $(this).val();
                 console.log(number);
-                xhr.open("post",'{% url 'user:login:ajax_yzm' %}');
+                if(number.length != 0){
+                    xhr.open("post",'{% url 'user:login:ajax_yzm' %}');
                 //3.在请求参数这是csrf 令牌(token)
                 var token = '{{ csrf_token }}';
                 xhr.setRequestHeader('X-CSRFToken',token);
@@ -90,10 +91,12 @@
                             console.log(3333)
                             $("#yzmtp").attr('src','{% static '/images/ajax/error.jpg' %}');
                             $("#yzmwz").text('验证码输入错误，请重新输入！');
-                            refresh_cap()
                         }
                     }
                 }
+                }
+
+
             });
             //点击换一张验证码
             function refresh_cap(){
@@ -104,10 +107,12 @@
                 $("#yzmtp").attr('src','');
                 $("#yzmwz").text('');
             });
+
             $("#yzm").keyup(function(){
                 $("#yzmtp").attr('src','');
                 $("#yzmwz").text('');
             });
+
 
 {#            //判断用户名和密码是否为空#}
 {#            $("#password").blur(function(){#}

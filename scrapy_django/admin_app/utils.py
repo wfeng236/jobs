@@ -2,7 +2,7 @@
 import random
 import hashlib
 
-POOL = '1234567890qwertyuiopasdfghjklzxcvbnm!@#$%^&*()_+[]{};'
+POOL = '1234567890qwertyuiopasdfghjklzxcvbnm'
 
 def getSalt():
     return ''.join(random.sample(POOL,6))

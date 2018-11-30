@@ -1,8 +1,10 @@
 import datetime
+import json
 import os
 import random
 import string
 import traceback
+import redis
 
 from django.db import transaction
 from django.shortcuts import render, HttpResponse, redirect
@@ -15,6 +17,8 @@ from job_info_app.get_city_of_ip import get_city
 from admin_app.get_ip import get_ip
 # Create your views here.
 
+
+conn = redis.StrictRedis(host='wnm1',port=7000)
 
 
 
@@ -48,11 +52,16 @@ def ajax_phone(request):
 
 #异步发送验证码
 def ajax_emailyz(request):
+    username = request.GET.get('username')
     email = request.GET.get('email')
     print(email)
-    subject, from_email, to = '请您完成验证(24小时有效)！', 'niuniu837365144@sina.com',email
+    subject, from_email, to = ''+username+'请您完成验证(30分钟有效)！', 'niuniu837365144@sina.com',email
     text_content = '欢迎访问www.baidu.com，祝贺你收到了我的邮件，有幸收到我的邮件说明你及其幸运'
-    html_content = '<p>感谢注册<a href="http://127.0.0.1:8000/user/register/emailyz/" target=blank>www.niubiyouxiang.com</a>，\欢迎你来验证你的邮箱，验证结束你就可以登录了！</p>'
+    #随机串
+    data = utils.getSalt()
+    #链接redis存储，并设置生命周期为半小时
+    conn.set('username',json.dumps(data),60*30)
+    html_content = '<p>感谢注册<a href="http://172.16.14.49:8000/user/register/emailyz/?username='+username+'&data='+data+'" target=blank>www.niubiyouxiang.com</a>，\欢迎'+username+'来验证你的邮箱，验证结束你就可以登录了！</p>'
     msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
@@ -61,10 +70,23 @@ def ajax_emailyz(request):
 #跳转用户邮箱验证页面
 def register_emailyz(request):
     request.session['email_status']='1'
+    #获取用户对象
     username = request.GET.get('username')
-    flag = request.GET.get('flag')
-    print(flag)
-    return render(request,'admin_pages/emailyz.html',{'username':username,'flag':flag})
+    #获取用户随机data
+    userdata = request.GET.get('data')
+    #从session获取用户对应的data
+    data = json.loads(conn.get('username').decode('utf-8'))
+    print(userdata,data)
+    database_user = User.objects.filter(username=username)
+    if database_user:
+        database_user[0].status = 1
+        database_user[0].save()
+    if userdata == data:
+        return render(request, 'admin_pages/emailyz.html')
+    else:
+        return HttpResponse('验证超时，请重新发送验证邮箱！！！')
+
+
 
 
 #注册接收
@@ -113,35 +135,27 @@ def register_logic(request):
             status = 0
         print(user_id,username,password,phone,email,salt,time,status)
         with transaction.atomic():
-            if username and phone and email and password1 == password2 and len(password1) >= 6 and city:
+            if username and phone and email and password1 == password2 and len(password1) >= 6 and city and status != 0:
                 User(user_id=user_id, username=username, password=password, phone=phone, email=email, salt=salt,
                      time=time, status=status,city=city).save()
-                if status == 0:
-                    return HttpResponse('5')
-                else:
-                    return HttpResponse('6')
-            #             else:
-            #                 return HttpResponse('0000')
-            #         else:
-            #             return HttpResponse('000')
-            #     else:
-            #         return HttpResponse('00')
+                return HttpResponse('6')
             else:
-                return HttpResponse('0')
+                User(user_id=user_id, username=username, password=password, phone=phone, email=email, salt=salt,
+                     time=time, status=status, city=city).save()
+                return HttpResponse('5')
     except:
         traceback.print_exc()
         #注册失败重新回到注册页面
         return redirect("user:register:page")
 
+#注册成功页面
+def register_ok(request):
+    username = request.GET.get('username')
+    flag = request.GET.get('flag')
+    return render(request,'admin_pages/register_ok.html',{'username':username,'flag':flag})
+
 #登录跳转页面
 def login_page(request):
-    # 获取用户对象
-    username = request.GET.get('username')
-    database_user = User.objects.filter(username=username)
-    print(database_user)
-    if database_user:
-        database_user[0].status = 1
-        database_user[0].save()
     return render(request, 'admin_pages/login.html')
 
 

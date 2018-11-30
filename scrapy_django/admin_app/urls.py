@@ -29,7 +29,9 @@ urlpatterns = [
         #邮箱确认路径
         path('emailyz/',views.register_emailyz,name='emailyz'),
         #注册接收路径
-        path('logic/',views.register_logic,name='logic')
+        path('logic/',views.register_logic,name='logic'),
+        #注册成功路径
+        path('ok/',views.register_ok,name='ok')
     ],'register'))),
 
     path('login/', include(([
