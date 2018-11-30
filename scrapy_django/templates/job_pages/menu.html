@@ -331,7 +331,53 @@
         {# 上一页、下一页、跳转、首页、尾页的函数   #}
         function jump_page(pn) {
             console.log(city,key,'1');
-            $.ajax({
+            if ('{{ request.session.login_user }}'){
+                console.log('akjshdfkjhsajdf')
+                $.ajax({
+                 type: "get",//请求方式get/post
+                 url: "{% url 'show:menu' %}",//请求地址
+                 data: {"city":city,"key":key,"salary":salary,"exp":exp,"pn":pn,"isasy":1,"sk":sk,"sc":sc},//请求参数
+                 dataType: "json",//声明当前的响应为json格式，则success中的abc就
+                 //是解析后的js对象
+                 success: function (abc) {//abc==xhr.responseText或解析后的js对象...//dom+css刷新页面
+                     console.log('ahhahahaaha')
+                     var job = abc.page.objects;
+                     $("#show_job").empty();
+                     page_total = parseInt(abc.page.num_pages);
+                     for(var i=0; i<job.length;i++){
+                         $("#show_job").append('<tr>' +
+                         '<td>' +
+                         job[i].job_title +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_name +
+                         '</td>' +
+                         '<td>' +
+                         job[i].salary +
+                         '</td>' +
+                         '<td>' +
+                         job[i].job_description +
+                         '</td>' +
+                         '<td>' +
+                         job[i].experience +
+                         '</td>' +
+                         '<td>' +
+                         job[i].degree +
+                         '</td>' +
+                         '<td>' +
+                         job[i].company_address +
+                         '</td>' +
+                         '</tr>')
+                     }
+                     $("#jumpNumTxt").val(pn);
+                     $("#cur_page").text(pn);
+                     $("#page_total").text(abc.page.num_pages);
+                     $("#job_total").text(abc.total_count);
+                 }
+             });
+            }else {
+                if (pn<=10){
+                    $.ajax({
                  type: "get",//请求方式get/post
                  url: "{% url 'show:menu' %}",//请求地址
                  data: {"city":city,"key":key,"salary":salary,"exp":exp,"pn":pn,"isasy":1,"sk":sk,"sc":sc},//请求参数
@@ -372,6 +418,11 @@
                      $("#job_total").text(abc.total_count);
                  }
              });
+                }else{
+                    window.location.href = "{% url 'user:login:page' %}"
+                }
+            }
+
         }
         $("#f_page").click(function () {
             pn = 1;
