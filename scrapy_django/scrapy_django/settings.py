@@ -86,7 +86,8 @@ DATABASES = {
         'NAME': 'scrapy_project',  # 数据库名称
         'USER': 'root',  # 用户名
         'PASSWORD': '123456',  # 密码
-        'HOST': '172.16.14.36',  # ip
+        # 'HOST': '172.16.14.36',  # ip
+        'HOST': '192.168.43.204',  # ip
         'PORT': '3306'  # 端口
     }
 }
@@ -152,7 +153,7 @@ EMAIL_HOST_PASSWORD = 'niu521'
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache", #Redis缓存入口，其中使用DefaultClient操作缓存
-        "LOCATION": "redis://172.16.14.8:7000/0", #ip:port/db_index
+        "LOCATION": "redis://wnm1:7000/0", #ip:port/db_index
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient" #操作缓存的对象
         }
